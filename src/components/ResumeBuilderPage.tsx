@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Download, Eye, FileText, Sparkles } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Sparkles } from 'lucide-react';
+import ModernTemplate from './templates/ModernTemplate';
+import ClassicTemplate from './templates/ClassicTemplate';
+import CreativeTemplate from './templates/CreativeTemplate';
+import MinimalTemplate from './templates/MinimalTemplate';
 
 interface ResumeData {
   personalInfo: {
@@ -43,27 +46,70 @@ const templates = [
     id: 'modern',
     name: 'Modern Professional',
     description: 'Clean and contemporary design perfect for tech roles',
-    color: 'bg-gradient-to-br from-blue-500 to-purple-600'
+    component: ModernTemplate
   },
   {
     id: 'classic',
     name: 'Classic Executive',
     description: 'Traditional layout ideal for corporate positions',
-    color: 'bg-gradient-to-br from-gray-700 to-gray-900'
+    component: ClassicTemplate
   },
   {
     id: 'creative',
     name: 'Creative Designer',
     description: 'Bold and artistic layout for creative professionals',
-    color: 'bg-gradient-to-br from-pink-500 to-orange-500'
+    component: CreativeTemplate
   },
   {
     id: 'minimal',
     name: 'Minimal Clean',
     description: 'Simple and elegant design that highlights content',
-    color: 'bg-gradient-to-br from-green-500 to-teal-600'
+    component: MinimalTemplate
   }
 ];
+
+// Sample data for template previews
+const sampleData: ResumeData = {
+  personalInfo: {
+    fullName: 'John Doe',
+    email: 'john.doe@email.com',
+    phone: '+1 (555) 123-4567',
+    location: 'San Francisco, CA',
+    linkedin: 'linkedin.com/in/johndoe',
+    portfolio: 'johndoe.com'
+  },
+  summary: 'Experienced software developer with 5+ years of expertise in full-stack development. Passionate about creating innovative solutions and leading cross-functional teams.',
+  experience: [
+    {
+      company: 'Tech Company Inc.',
+      position: 'Senior Software Developer',
+      duration: '2022 - Present',
+      description: 'Led development of scalable web applications serving 10M+ users. Reduced load times by 40% through optimization.'
+    },
+    {
+      company: 'StartupXYZ',
+      position: 'Frontend Developer',
+      duration: '2020 - 2022',
+      description: 'Built responsive React applications and collaborated with design teams to implement pixel-perfect UIs.'
+    }
+  ],
+  education: [
+    {
+      institution: 'University of California',
+      degree: 'Bachelor of Science in Computer Science',
+      year: '2020',
+      gpa: '3.8'
+    }
+  ],
+  skills: ['JavaScript', 'React', 'Node.js', 'Python', 'AWS', 'Docker', 'MongoDB'],
+  projects: [
+    {
+      name: 'E-commerce Platform',
+      description: 'Full-stack web application with real-time inventory management and payment processing.',
+      technologies: 'React, Node.js, MongoDB, Stripe API'
+    }
+  ]
+};
 
 const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
@@ -144,6 +190,9 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
     setResumeData(prev => ({ ...prev, skills: skillsArray }));
   };
 
+  const selectedTemplateComponent = templates.find(t => t.id === selectedTemplate)?.component || ModernTemplate;
+  const SelectedTemplate = selectedTemplateComponent;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -173,24 +222,36 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
                     <CardTitle>Choose Your Template</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {templates.map((template) => (
-                        <div
-                          key={template.id}
-                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            selectedTemplate === template.id
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => setSelectedTemplate(template.id)}
-                        >
-                          <div className={`h-32 ${template.color} rounded-lg mb-3 flex items-center justify-center`}>
-                            <FileText className="h-12 w-12 text-white" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {templates.map((template) => {
+                        const TemplateComponent = template.component;
+                        return (
+                          <div
+                            key={template.id}
+                            className={`relative cursor-pointer transition-all duration-200 ${
+                              selectedTemplate === template.id
+                                ? 'ring-2 ring-blue-500 ring-offset-2'
+                                : 'hover:shadow-lg'
+                            }`}
+                            onClick={() => setSelectedTemplate(template.id)}
+                          >
+                            <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                              <div className="h-64 overflow-hidden relative">
+                                <TemplateComponent data={sampleData} isPreview={true} />
+                              </div>
+                              <div className="p-4">
+                                <h3 className="font-semibold text-gray-900 mb-1">{template.name}</h3>
+                                <p className="text-sm text-gray-600">{template.description}</p>
+                              </div>
+                            </div>
+                            {selectedTemplate === template.id && (
+                              <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            )}
                           </div>
-                          <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                          <p className="text-sm text-gray-600">{template.description}</p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -477,41 +538,9 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
                 <CardTitle className="text-lg">Live Preview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-white border-2 border-gray-200 rounded-lg p-4 min-h-96">
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <h3 className="font-bold text-lg">{resumeData.personalInfo.fullName || 'Your Name'}</h3>
-                      <p className="text-sm text-gray-600">
-                        {resumeData.personalInfo.email || 'email@example.com'} | {resumeData.personalInfo.phone || 'Phone'}
-                      </p>
-                      <p className="text-sm text-gray-600">{resumeData.personalInfo.location || 'Location'}</p>
-                    </div>
-                    
-                    {resumeData.summary && (
-                      <div>
-                        <h4 className="font-semibold text-sm border-b border-gray-300 pb-1">SUMMARY</h4>
-                        <p className="text-xs mt-2">{resumeData.summary}</p>
-                      </div>
-                    )}
-                    
-                    {resumeData.experience.some(exp => exp.company) && (
-                      <div>
-                        <h4 className="font-semibold text-sm border-b border-gray-300 pb-1">EXPERIENCE</h4>
-                        {resumeData.experience.filter(exp => exp.company).map((exp, index) => (
-                          <div key={index} className="mt-2">
-                            <p className="text-xs font-medium">{exp.position}</p>
-                            <p className="text-xs text-gray-600">{exp.company} | {exp.duration}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {resumeData.skills.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-sm border-b border-gray-300 pb-1">SKILLS</h4>
-                        <p className="text-xs mt-2">{resumeData.skills.join(', ')}</p>
-                      </div>
-                    )}
+                <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
+                  <div className="h-96 overflow-auto">
+                    <SelectedTemplate data={resumeData} isPreview={true} />
                   </div>
                 </div>
               </CardContent>
