@@ -1,10 +1,16 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Sparkles, Download, Eye } from 'lucide-react';
+import ResumeBuilderPage from './ResumeBuilderPage';
 
 const ResumeBuilder = () => {
+  const [showBuilder, setShowBuilder] = useState(false);
+
+  if (showBuilder) {
+    return <ResumeBuilderPage onBack={() => setShowBuilder(false)} />;
+  }
+
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,7 +59,11 @@ const ResumeBuilder = () => {
               </div>
             </div>
 
-            <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              onClick={() => setShowBuilder(true)}
+            >
               Build My Resume
               <FileText className="ml-2 h-5 w-5" />
             </Button>
