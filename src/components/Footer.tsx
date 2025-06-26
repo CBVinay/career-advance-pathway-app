@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Mail, Phone, MapPin, Facebook, Twitter, LinkedIn, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -25,7 +25,7 @@ const Footer = () => {
                 <Twitter className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <LinkedIn className="h-5 w-5" />
+                <Linkedin className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 <Instagram className="h-5 w-5" />
