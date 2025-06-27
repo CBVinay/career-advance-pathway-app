@@ -3,7 +3,6 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar } from '@/components/ui/avatar';
 import { Star, MessageCircle, Calendar, Users } from 'lucide-react';
 
 const Mentorship = () => {
@@ -44,10 +43,14 @@ const Mentorship = () => {
   ];
 
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Career Guidance & Mentorship</h2>
+    <section className="py-16 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-12 animate-fade-in">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent mb-4">Career Guidance & Mentorship</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Connect with industry experts who can guide your career journey. Get personalized advice, 
             interview preparation, and insights from professionals at top companies.
@@ -56,74 +59,83 @@ const Mentorship = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="text-center">
-            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="h-8 w-8 text-blue-600" />
+          <div className="text-center animate-fade-in delay-300 group hover:transform hover:scale-105 transition-all duration-300">
+            <div className="bg-gradient-to-br from-blue-100 to-blue-200 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <Users className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">500+</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">500+</div>
             <div className="text-gray-600">Expert Mentors</div>
           </div>
-          <div className="text-center">
-            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageCircle className="h-8 w-8 text-green-600" />
+          <div className="text-center animate-fade-in delay-500 group hover:transform hover:scale-105 transition-all duration-300">
+            <div className="bg-gradient-to-br from-green-100 to-green-200 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <MessageCircle className="h-8 w-8 text-green-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">10k+</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent mb-2">10k+</div>
             <div className="text-gray-600">Sessions Completed</div>
           </div>
-          <div className="text-center">
-            <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Star className="h-8 w-8 text-purple-600" />
+          <div className="text-center animate-fade-in delay-700 group hover:transform hover:scale-105 transition-all duration-300">
+            <div className="bg-gradient-to-br from-purple-100 to-purple-200 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <Star className="h-8 w-8 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-2">4.8</div>
+            <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">4.8</div>
             <div className="text-gray-600">Average Rating</div>
           </div>
         </div>
 
         {/* Mentor Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {mentors.map((mentor) => (
-            <Card key={mentor.id} className="p-6 hover:shadow-lg transition-shadow duration-200 bg-white">
-              <div className="text-center mb-6">
-                <img 
-                  src={mentor.image} 
-                  alt={mentor.name}
-                  className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                />
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{mentor.name}</h3>
-                <p className="text-gray-600 mb-1">{mentor.title}</p>
-                <p className="text-blue-600 font-medium">{mentor.company}</p>
+          {mentors.map((mentor, index) => (
+            <Card 
+              key={mentor.id} 
+              className={`p-6 hover:shadow-2xl transition-all duration-500 bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:transform hover:scale-105 animate-fade-in group`}
+              style={{ animationDelay: `${(index + 1) * 200}ms` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="text-center mb-6 relative z-10">
+                <div className="relative inline-block">
+                  <img 
+                    src={mentor.image} 
+                    alt={mentor.name}
+                    className="w-20 h-20 rounded-full mx-auto mb-4 object-cover ring-4 ring-white shadow-lg group-hover:ring-blue-200 transition-all duration-300"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-t from-blue-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors duration-300">{mentor.name}</h3>
+                <p className="text-gray-600 mb-1 group-hover:text-gray-700 transition-colors duration-300">{mentor.title}</p>
+                <p className="text-blue-600 font-medium group-hover:text-blue-700 transition-colors duration-300">{mentor.company}</p>
               </div>
 
-              <div className="flex items-center justify-center gap-4 mb-4 text-sm text-gray-600">
-                <div className="flex items-center">
+              <div className="flex items-center justify-center gap-4 mb-4 text-sm text-gray-600 relative z-10">
+                <div className="flex items-center hover:text-yellow-600 transition-colors duration-300">
                   <Star className="h-4 w-4 mr-1 text-yellow-500 fill-current" />
                   {mentor.rating}
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center hover:text-blue-600 transition-colors duration-300">
                   <MessageCircle className="h-4 w-4 mr-1" />
                   {mentor.sessions} sessions
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-6 justify-center">
+              <div className="flex flex-wrap gap-2 mb-6 justify-center relative z-10">
                 {mentor.expertise.map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-xs">
+                  <Badge key={skill} variant="secondary" className="text-xs bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 hover:shadow-md transition-all duration-300 hover:scale-105">
                     {skill}
                   </Badge>
                 ))}
               </div>
 
-              <div className="text-center mb-4">
-                <div className="text-2xl font-bold text-gray-900">{mentor.price}</div>
+              <div className="text-center mb-4 relative z-10">
+                <div className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">{mentor.price}</div>
                 <div className="text-gray-600 text-sm">per session</div>
               </div>
 
-              <div className="space-y-2">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+              <div className="space-y-2 relative z-10">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all duration-300 hover:scale-105">
                   <Calendar className="h-4 w-4 mr-2" />
                   Book Session
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 hover:scale-105">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Send Message
                 </Button>
@@ -132,8 +144,8 @@ const Mentorship = () => {
           ))}
         </div>
 
-        <div className="text-center">
-          <Button variant="outline" size="lg">
+        <div className="text-center animate-fade-in delay-1000">
+          <Button variant="outline" size="lg" className="hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:scale-105">
             View All Mentors
           </Button>
         </div>
