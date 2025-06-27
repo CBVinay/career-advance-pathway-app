@@ -10,6 +10,8 @@ import ModernTemplate from './templates/ModernTemplate';
 import ClassicTemplate from './templates/ClassicTemplate';
 import CreativeTemplate from './templates/CreativeTemplate';
 import MinimalTemplate from './templates/MinimalTemplate';
+import ResumePreviewModal from './ResumePreviewModal';
+import { generateResumePDF } from '@/utils/pdfGenerator';
 
 interface ResumeData {
   personalInfo: {
@@ -113,6 +115,7 @@ const sampleData: ResumeData = {
 
 const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
+  const [showPreview, setShowPreview] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>({
     personalInfo: {
       fullName: '',
@@ -188,6 +191,11 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
   const updateSkills = (skillsText: string) => {
     const skillsArray = skillsText.split(',').map(skill => skill.trim()).filter(skill => skill);
     setResumeData(prev => ({ ...prev, skills: skillsArray }));
+  };
+
+  const handleDownloadPDF = () => {
+    const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
+    generateResumePDF(resumeData, selectedTemplateData?.name || 'Modern Professional');
   };
 
   const selectedTemplateComponent = templates.find(t => t.id === selectedTemplate)?.component || ModernTemplate;
@@ -515,13 +523,13 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
                       </div>
                       
                       <div className="flex gap-4">
-                        <Button size="lg" className="flex-1">
+                        <Button size="lg" className="flex-1" onClick={handleDownloadPDF}>
                           <Download className="h-5 w-5 mr-2" />
                           Download PDF
                         </Button>
-                        <Button variant="outline" size="lg">
+                        <Button variant="outline" size="lg" onClick={() => setShowPreview(true)}>
                           <Eye className="h-5 w-5 mr-2" />
-                          Preview
+                          Full Preview
                         </Button>
                       </div>
                     </div>
@@ -535,7 +543,13 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
           <div className="lg:col-span-1">
             <Card className="sticky top-8">
               <CardHeader>
-                <CardTitle className="text-lg">Live Preview</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Live Preview</CardTitle>
+                  <Button variant="outline" size="sm" onClick={() => setShowPreview(true)}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    Full View
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="border-2 border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -548,6 +562,14 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
           </div>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      <ResumePreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        data={resumeData}
+        templateId={selectedTemplate}
+      />
     </div>
   );
 };
