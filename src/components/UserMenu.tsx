@@ -23,6 +23,10 @@ const UserMenu = () => {
     navigate('/account');
   };
 
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,6 +40,10 @@ const UserMenu = () => {
           {user.email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleDashboardClick} className="cursor-pointer">
+          <User className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleAccountClick} className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
           <span>Account Settings</span>

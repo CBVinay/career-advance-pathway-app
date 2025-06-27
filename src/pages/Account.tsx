@@ -136,7 +136,7 @@ const Account = () => {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="mb-4 hover:bg-blue-50 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
