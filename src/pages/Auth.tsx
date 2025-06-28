@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +20,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -33,6 +32,9 @@ const Auth = () => {
       let error;
       if (isLogin) {
         ({ error } = await signIn(email, password));
+        if (!error) {
+          navigate('/dashboard');
+        }
       } else {
         ({ error } = await signUp(email, password, fullName));
       }
