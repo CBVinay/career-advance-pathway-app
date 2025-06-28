@@ -11,27 +11,63 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          address: string | null
+          bio: string | null
           created_at: string | null
+          date_of_birth: string | null
+          degree: string | null
           email: string | null
+          experience_years: number | null
           full_name: string | null
+          github_url: string | null
+          graduation_year: number | null
           id: string
+          linkedin_url: string | null
+          phone: string | null
+          portfolio_url: string | null
           role: string | null
+          skills: string[] | null
+          university: string | null
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
+          bio?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
+          degree?: string | null
           email?: string | null
+          experience_years?: number | null
           full_name?: string | null
+          github_url?: string | null
+          graduation_year?: number | null
           id: string
+          linkedin_url?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
           role?: string | null
+          skills?: string[] | null
+          university?: string | null
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
+          bio?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
+          degree?: string | null
           email?: string | null
+          experience_years?: number | null
           full_name?: string | null
+          github_url?: string | null
+          graduation_year?: number | null
           id?: string
+          linkedin_url?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
           role?: string | null
+          skills?: string[] | null
+          university?: string | null
           updated_at?: string | null
         }
         Relationships: []
