@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useResumeData } from '@/hooks/useResumeData';
 
@@ -152,6 +153,54 @@ const MinimalTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPre
                 {proj.description && <p className="text-gray-700 leading-relaxed font-light">{proj.description}</p>}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Certificates */}
+        {templateData.certificates && templateData.certificates.some(cert => cert.name) && (
+          <div className="mb-10">
+            <h2 className="text-sm font-medium text-gray-900 mb-4 tracking-widest uppercase">Certificates</h2>
+            <div className="w-8 h-px bg-green-500 mb-6"></div>
+            {templateData.certificates.filter(cert => cert.name).map((cert, index) => (
+              <div key={index} className="mb-6">
+                <div className="flex justify-between items-baseline">
+                  <div>
+                    <h3 className="text-lg font-light text-gray-900">{cert.name}</h3>
+                    <p className="text-green-600 font-light">{cert.issuer}</p>
+                  </div>
+                  <p className="text-gray-500 text-sm font-light">{cert.date}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Languages */}
+        {templateData.languages && templateData.languages.some(lang => lang.name) && (
+          <div className="mb-10">
+            <h2 className="text-sm font-medium text-gray-900 mb-4 tracking-widest uppercase">Languages</h2>
+            <div className="w-8 h-px bg-green-500 mb-6"></div>
+            <p className="text-gray-700 leading-relaxed font-light">
+              {templateData.languages.filter(lang => lang.name).map(lang => `${lang.name} (${lang.proficiency})`).join('  •  ')}
+            </p>
+          </div>
+        )}
+
+        {/* Interests */}
+        {templateData.interests && templateData.interests.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-sm font-medium text-gray-900 mb-4 tracking-widest uppercase">Interests</h2>
+            <div className="w-8 h-px bg-green-500 mb-6"></div>
+            <p className="text-gray-700 leading-relaxed font-light">{templateData.interests.join('  •  ')}</p>
+          </div>
+        )}
+
+        {/* Declaration */}
+        {templateData.declaration && (
+          <div className="mb-10">
+            <h2 className="text-sm font-medium text-gray-900 mb-4 tracking-widest uppercase">Declaration</h2>
+            <div className="w-8 h-px bg-green-500 mb-6"></div>
+            <p className="text-gray-700 leading-relaxed font-light">{templateData.declaration}</p>
           </div>
         )}
       </div>

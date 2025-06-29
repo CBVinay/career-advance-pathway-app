@@ -3,6 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import ModernTemplate from './templates/ModernTemplate';
 import ClassicTemplate from './templates/ClassicTemplate';
 import CreativeTemplate from './templates/CreativeTemplate';
@@ -75,8 +76,8 @@ const ResumePreviewModal = ({ isOpen, onClose, data, templateId }: ResumePreview
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="max-w-5xl w-[95vw] h-[95vh] p-0 flex flex-col">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-bold">Resume Preview - {selectedTemplate.name}</DialogTitle>
             <div className="flex items-center gap-2">
@@ -91,13 +92,13 @@ const ResumePreviewModal = ({ isOpen, onClose, data, templateId }: ResumePreview
           </div>
         </DialogHeader>
         
-        <div className="flex-1 overflow-auto p-6 pt-4">
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden" style={{ transform: 'scale(0.8)', transformOrigin: 'top center' }}>
+        <ScrollArea className="flex-1 px-6 pb-6">
+          <div className="bg-gray-50 p-4 rounded-lg min-h-full">
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden mx-auto" style={{ maxWidth: '210mm', transform: 'scale(0.9)', transformOrigin: 'top center' }}>
               <TemplateComponent data={data} isPreview={false} />
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

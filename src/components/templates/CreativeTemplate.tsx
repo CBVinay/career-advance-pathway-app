@@ -65,22 +65,22 @@ const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPr
         {/* Left Sidebar */}
         <div className="w-1/3 bg-gradient-to-b from-pink-500 to-orange-500 text-white p-6">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-4">{data.personalInfo.fullName || 'Your Name'}</h1>
+            <h1 className="text-2xl font-bold mb-4">{templateData.personalInfo.fullName || 'Your Name'}</h1>
             <div className="space-y-2 text-pink-100">
-              <p className="text-sm">{data.personalInfo.email || 'email@example.com'}</p>
-              <p className="text-sm">{data.personalInfo.phone || 'Phone'}</p>
-              <p className="text-sm">{data.personalInfo.location || 'Location'}</p>
-              {data.personalInfo.linkedin && <p className="text-sm">{data.personalInfo.linkedin}</p>}
-              {data.personalInfo.portfolio && <p className="text-sm">{data.personalInfo.portfolio}</p>}
+              <p className="text-sm">{templateData.personalInfo.email || 'email@example.com'}</p>
+              <p className="text-sm">{templateData.personalInfo.phone || 'Phone'}</p>
+              <p className="text-sm">{templateData.personalInfo.location || 'Location'}</p>
+              {templateData.personalInfo.linkedin && <p className="text-sm">{templateData.personalInfo.linkedin}</p>}
+              {templateData.personalInfo.portfolio && <p className="text-sm">{templateData.personalInfo.portfolio}</p>}
             </div>
           </div>
 
           {/* Skills */}
-          {data.skills.length > 0 && (
+          {templateData.skills.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-bold mb-4 text-yellow-200">SKILLS</h2>
               <div className="space-y-2">
-                {data.skills.map((skill, index) => (
+                {templateData.skills.map((skill, index) => (
                   <div key={index} className="bg-white bg-opacity-20 rounded-full px-3 py-1">
                     <span className="text-sm font-medium">{skill}</span>
                   </div>
@@ -90,10 +90,10 @@ const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPr
           )}
 
           {/* Education */}
-          {data.education.some(edu => edu.institution) && (
+          {templateData.education.some(edu => edu.institution) && (
             <div className="mb-8">
               <h2 className="text-lg font-bold mb-4 text-yellow-200">EDUCATION</h2>
-              {data.education.filter(edu => edu.institution).map((edu, index) => (
+              {templateData.education.filter(edu => edu.institution).map((edu, index) => (
                 <div key={index} className="mb-4">
                   <h3 className="font-bold text-sm">{edu.degree}</h3>
                   <p className="text-pink-100 text-sm">{edu.institution}</p>
@@ -103,25 +103,53 @@ const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPr
               ))}
             </div>
           )}
+
+          {/* Languages */}
+          {templateData.languages && templateData.languages.some(lang => lang.name) && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold mb-4 text-yellow-200">LANGUAGES</h2>
+              <div className="space-y-2">
+                {templateData.languages.filter(lang => lang.name).map((lang, index) => (
+                  <div key={index} className="bg-white bg-opacity-20 rounded-full px-3 py-1">
+                    <span className="text-sm font-medium">{`${lang.name} (${lang.proficiency})`}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Interests */}
+          {templateData.interests && templateData.interests.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold mb-4 text-yellow-200">INTERESTS</h2>
+              <div className="space-y-2">
+                {templateData.interests.map((interest, index) => (
+                  <div key={index} className="bg-white bg-opacity-20 rounded-full px-3 py-1">
+                    <span className="text-sm font-medium">{interest}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Content */}
         <div className="w-2/3 p-6">
           {/* Professional Summary */}
-          {data.summary && (
+          {templateData.summary && (
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-pink-600 mb-3">ABOUT ME</h2>
               <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
-              <p className="text-gray-700 leading-relaxed">{data.summary}</p>
+              <p className="text-gray-700 leading-relaxed">{templateData.summary}</p>
             </div>
           )}
 
           {/* Experience */}
-          {data.experience.some(exp => exp.company) && (
+          {templateData.experience.some(exp => exp.company) && (
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-pink-600 mb-3">EXPERIENCE</h2>
               <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
-              {data.experience.filter(exp => exp.company).map((exp, index) => (
+              {templateData.experience.filter(exp => exp.company).map((exp, index) => (
                 <div key={index} className="mb-6 relative pl-4">
                   <div className="absolute left-0 top-2 w-2 h-2 bg-pink-500 rounded-full"></div>
                   <div className="flex justify-between items-start mb-1">
@@ -136,11 +164,11 @@ const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPr
           )}
 
           {/* Projects */}
-          {data.projects.some(proj => proj.name) && (
+          {templateData.projects.some(proj => proj.name) && (
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-pink-600 mb-3">PROJECTS</h2>
               <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
-              {data.projects.filter(proj => proj.name).map((proj, index) => (
+              {templateData.projects.filter(proj => proj.name).map((proj, index) => (
                 <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
                   <h3 className="font-bold text-lg text-gray-800">{proj.name}</h3>
                   {proj.technologies && (
@@ -149,6 +177,30 @@ const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPr
                   {proj.description && <p className="text-gray-700 leading-relaxed text-sm">{proj.description}</p>}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Certificates */}
+          {templateData.certificates && templateData.certificates.some(cert => cert.name) && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-pink-600 mb-3">CERTIFICATES</h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
+              {templateData.certificates.filter(cert => cert.name).map((cert, index) => (
+                <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-bold text-lg text-gray-800">{cert.name}</h3>
+                  <p className="text-pink-600 text-sm mb-1 font-medium">{cert.issuer}</p>
+                  <p className="text-gray-600 text-sm">{cert.date}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Declaration */}
+          {templateData.declaration && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-pink-600 mb-3">DECLARATION</h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
+              <p className="text-gray-700 leading-relaxed">{templateData.declaration}</p>
             </div>
           )}
         </div>
