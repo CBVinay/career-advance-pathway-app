@@ -21,6 +21,12 @@ interface Profile {
   github_url: string | null;
   portfolio_url: string | null;
   bio: string | null;
+  professional_experience: any[] | null;
+  projects: any[] | null;
+  certificates: any[] | null;
+  languages: any[] | null;
+  interests: string[] | null;
+  declaration: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -39,6 +45,12 @@ interface FormData {
   github_url: string;
   portfolio_url: string;
   bio: string;
+  professional_experience: any[];
+  projects: any[];
+  certificates: any[];
+  languages: any[];
+  interests: string;
+  declaration: string;
 }
 
 export const useProfile = () => {
@@ -58,7 +70,13 @@ export const useProfile = () => {
     linkedin_url: '',
     github_url: '',
     portfolio_url: '',
-    bio: ''
+    bio: '',
+    professional_experience: [],
+    projects: [],
+    certificates: [],
+    languages: [],
+    interests: '',
+    declaration: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,7 +111,13 @@ export const useProfile = () => {
           linkedin_url: data.linkedin_url || '',
           github_url: data.github_url || '',
           portfolio_url: data.portfolio_url || '',
-          bio: data.bio || ''
+          bio: data.bio || '',
+          professional_experience: data.professional_experience || [],
+          projects: data.projects || [],
+          certificates: data.certificates || [],
+          languages: data.languages || [],
+          interests: data.interests?.join(', ') || '',
+          declaration: data.declaration || ''
         });
       }
     } catch (error) {
@@ -103,7 +127,7 @@ export const useProfile = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | any[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -129,6 +153,12 @@ export const useProfile = () => {
         github_url: formData.github_url,
         portfolio_url: formData.portfolio_url,
         bio: formData.bio,
+        professional_experience: formData.professional_experience,
+        projects: formData.projects,
+        certificates: formData.certificates,
+        languages: formData.languages,
+        interests: formData.interests ? formData.interests.split(',').map(s => s.trim()).filter(s => s) : null,
+        declaration: formData.declaration,
         updated_at: new Date().toISOString(),
       };
 

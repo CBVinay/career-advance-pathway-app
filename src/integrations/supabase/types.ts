@@ -13,8 +13,10 @@ export type Database = {
         Row: {
           address: string | null
           bio: string | null
+          certificates: Json | null
           created_at: string | null
           date_of_birth: string | null
+          declaration: string | null
           degree: string | null
           email: string | null
           experience_years: number | null
@@ -22,9 +24,13 @@ export type Database = {
           github_url: string | null
           graduation_year: number | null
           id: string
+          interests: string[] | null
+          languages: Json | null
           linkedin_url: string | null
           phone: string | null
           portfolio_url: string | null
+          professional_experience: Json | null
+          projects: Json | null
           role: string | null
           skills: string[] | null
           university: string | null
@@ -33,8 +39,10 @@ export type Database = {
         Insert: {
           address?: string | null
           bio?: string | null
+          certificates?: Json | null
           created_at?: string | null
           date_of_birth?: string | null
+          declaration?: string | null
           degree?: string | null
           email?: string | null
           experience_years?: number | null
@@ -42,9 +50,13 @@ export type Database = {
           github_url?: string | null
           graduation_year?: number | null
           id: string
+          interests?: string[] | null
+          languages?: Json | null
           linkedin_url?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          professional_experience?: Json | null
+          projects?: Json | null
           role?: string | null
           skills?: string[] | null
           university?: string | null
@@ -53,8 +65,10 @@ export type Database = {
         Update: {
           address?: string | null
           bio?: string | null
+          certificates?: Json | null
           created_at?: string | null
           date_of_birth?: string | null
+          declaration?: string | null
           degree?: string | null
           email?: string | null
           experience_years?: number | null
@@ -62,9 +76,13 @@ export type Database = {
           github_url?: string | null
           graduation_year?: number | null
           id?: string
+          interests?: string[] | null
+          languages?: Json | null
           linkedin_url?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          professional_experience?: Json | null
+          projects?: Json | null
           role?: string | null
           skills?: string[] | null
           university?: string | null

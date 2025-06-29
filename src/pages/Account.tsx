@@ -8,6 +8,12 @@ import ProfileHeader from '@/components/account/ProfileHeader';
 import PersonalInfoCard from '@/components/account/PersonalInfoCard';
 import EducationCard from '@/components/account/EducationCard';
 import SkillsBioCard from '@/components/account/SkillsBioCard';
+import ProfessionalExperienceCard from '@/components/account/ProfessionalExperienceCard';
+import ProjectsCard from '@/components/account/ProjectsCard';
+import CertificatesCard from '@/components/account/CertificatesCard';
+import LanguagesCard from '@/components/account/LanguagesCard';
+import InterestsCard from '@/components/account/InterestsCard';
+import DeclarationCard from '@/components/account/DeclarationCard';
 import SocialLinksCard from '@/components/account/SocialLinksCard';
 import AccountDetailsCard from '@/components/account/AccountDetailsCard';
 
@@ -40,6 +46,7 @@ const Account = () => {
         <ProfileHeader profile={profile} />
 
         <form onSubmit={handleSaveProfile} className="space-y-8">
+          {/* Personal Information */}
           <PersonalInfoCard 
             formData={{
               full_name: formData.full_name,
@@ -50,6 +57,7 @@ const Account = () => {
             onInputChange={handleInputChange}
           />
 
+          {/* Education */}
           <EducationCard 
             formData={{
               university: formData.university,
@@ -60,6 +68,15 @@ const Account = () => {
             onInputChange={handleInputChange}
           />
 
+          {/* Professional Experience */}
+          <ProfessionalExperienceCard 
+            formData={{
+              professional_experience: formData.professional_experience
+            }}
+            onInputChange={handleInputChange}
+          />
+
+          {/* Skills & Bio */}
           <SkillsBioCard 
             formData={{
               skills: formData.skills,
@@ -68,6 +85,39 @@ const Account = () => {
             onInputChange={handleInputChange}
           />
 
+          {/* Projects */}
+          <ProjectsCard 
+            formData={{
+              projects: formData.projects
+            }}
+            onInputChange={handleInputChange}
+          />
+
+          {/* Certificates */}
+          <CertificatesCard 
+            formData={{
+              certificates: formData.certificates
+            }}
+            onInputChange={handleInputChange}
+          />
+
+          {/* Languages */}
+          <LanguagesCard 
+            formData={{
+              languages: formData.languages
+            }}
+            onInputChange={handleInputChange}
+          />
+
+          {/* Interests */}
+          <InterestsCard 
+            formData={{
+              interests: formData.interests
+            }}
+            onInputChange={handleInputChange}
+          />
+
+          {/* Social Links */}
           <SocialLinksCard 
             formData={{
               linkedin_url: formData.linkedin_url,
@@ -77,6 +127,15 @@ const Account = () => {
             onInputChange={handleInputChange}
           />
 
+          {/* Declaration */}
+          <DeclarationCard 
+            formData={{
+              declaration: formData.declaration
+            }}
+            onInputChange={handleInputChange}
+          />
+
+          {/* Account Details */}
           <AccountDetailsCard profile={profile} />
 
           <div className="flex justify-end">
