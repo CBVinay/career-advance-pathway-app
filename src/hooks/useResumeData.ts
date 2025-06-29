@@ -84,6 +84,40 @@ export const useResumeData = () => {
       }
 
       if (data) {
+        // Type-safe casting for JSONB arrays
+        const professionalExperience = Array.isArray(data.professional_experience) 
+          ? data.professional_experience as Array<{
+              company: string;
+              position: string;
+              duration: string;
+              description: string;
+            }>
+          : [];
+
+        const projects = Array.isArray(data.projects)
+          ? data.projects as Array<{
+              name: string;
+              description: string;
+              technologies: string;
+            }>
+          : [];
+
+        const certificates = Array.isArray(data.certificates)
+          ? data.certificates as Array<{
+              name: string;
+              issuer: string;
+              date: string;
+              credentialId?: string;
+            }>
+          : [];
+
+        const languages = Array.isArray(data.languages)
+          ? data.languages as Array<{
+              name: string;
+              proficiency: string;
+            }>
+          : [];
+
         setResumeData({
           personalInfo: {
             fullName: data.full_name || '',
@@ -94,7 +128,7 @@ export const useResumeData = () => {
             portfolio: data.portfolio_url || ''
           },
           summary: data.bio || '',
-          experience: Array.isArray(data.professional_experience) ? data.professional_experience : [],
+          experience: professionalExperience,
           education: [{
             institution: data.university || '',
             degree: data.degree || '',
@@ -102,9 +136,9 @@ export const useResumeData = () => {
             gpa: ''
           }].filter(edu => edu.institution),
           skills: data.skills || [],
-          projects: Array.isArray(data.projects) ? data.projects : [],
-          certificates: Array.isArray(data.certificates) ? data.certificates : [],
-          languages: Array.isArray(data.languages) ? data.languages : [],
+          projects: projects,
+          certificates: certificates,
+          languages: languages,
           interests: data.interests || [],
           declaration: data.declaration || ''
         });
