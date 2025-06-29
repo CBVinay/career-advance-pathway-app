@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Download, Eye, Sparkles } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Sparkles, RefreshCw } from 'lucide-react';
 import ModernTemplate from './templates/ModernTemplate';
 import ClassicTemplate from './templates/ClassicTemplate';
 import CreativeTemplate from './templates/CreativeTemplate';
 import MinimalTemplate from './templates/MinimalTemplate';
 import ResumePreviewModal from './ResumePreviewModal';
 import { generateResumePDF } from '@/utils/pdfGenerator';
+import { useResumeData } from '@/hooks/useResumeData';
+import { useToast } from '@/hooks/use-toast';
 
 interface ResumeData {
   personalInfo: {
@@ -130,6 +132,8 @@ const sampleData: ResumeData = {
 };
 
 const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
+  const { resumeData: profileData, loading, refetch } = useResumeData();
+  const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [showPreview, setShowPreview] = useState(false);
   const [resumeData, setResumeData] = useState<ResumeData>({
@@ -152,6 +156,21 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
     declaration: ''
   });
   const [activeTab, setActiveTab] = useState('template');
+
+  // Load profile data when available
+  useEffect(() => {
+    if (profileData && !loading) {
+      setResumeData(profileData);
+      toast({
+        title: "Profile Loaded",
+        description: "Your saved profile details have been loaded automatically.",
+      });
+    }
+  }, [profileData, loading, toast]);
+
+  const loadProfileData = () => {
+    refetch();
+  };
 
   const updatePersonalInfo = (field: string, value: string) => {
     setResumeData(prev => ({
@@ -229,8 +248,21 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI-Powered Resume Builder</h1>
-          <p className="text-gray-600">Create a professional resume in minutes with our smart templates</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">AI-Powered Resume Builder</h1>
+              <p className="text-gray-600">Create a professional resume in minutes with our smart templates</p>
+            </div>
+            <Button 
+              onClick={loadProfileData} 
+              variant="outline"
+              disabled={loading}
+              className="flex items-center"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              {loading ? 'Loading...' : 'Load Profile Data'}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -247,7 +279,14 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
               <TabsContent value="template" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Choose Your Template</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Choose Your Template</CardTitle>
+                      {profileData.personalInfo.fullName && (
+                        <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                          Profile data loaded ✓
+                        </div>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

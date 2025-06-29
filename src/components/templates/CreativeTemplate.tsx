@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useResumeData } from '@/hooks/useResumeData';
 
 interface ResumeData {
   personalInfo: {
@@ -29,10 +30,34 @@ interface ResumeData {
     description: string;
     technologies: string;
   }>;
+  certificates: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+    credentialId?: string;
+  }>;
+  languages: Array<{
+    name: string;
+    proficiency: string;
+  }>;
+  interests: string[];
+  declaration: string;
 }
 
-const CreativeTemplate = ({ data, isPreview = false }: { data: ResumeData; isPreview?: boolean }) => {
+const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPreview?: boolean }) => {
+  const { resumeData, loading } = useResumeData();
+  const templateData = data || resumeData;
   const scale = isPreview ? 'scale-[0.3]' : 'scale-100';
+  
+  if (loading && !data) {
+    return (
+      <div className={`bg-white ${scale} origin-top-left transition-transform duration-200`}>
+        <div className="w-[210mm] min-h-[297mm] bg-white shadow-lg font-sans text-gray-800 flex items-center justify-center">
+          <div className="text-lg">Loading resume data...</div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className={`bg-white ${scale} origin-top-left transition-transform duration-200`}>
