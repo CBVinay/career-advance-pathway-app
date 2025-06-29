@@ -97,7 +97,15 @@ export const useProfile = () => {
           variant: "destructive",
         });
       } else {
-        setProfile(data);
+        const profileData = {
+          ...data,
+          professional_experience: Array.isArray(data.professional_experience) ? data.professional_experience : [],
+          projects: Array.isArray(data.projects) ? data.projects : [],
+          certificates: Array.isArray(data.certificates) ? data.certificates : [],
+          languages: Array.isArray(data.languages) ? data.languages : [],
+        };
+        
+        setProfile(profileData);
         setFormData({
           full_name: data.full_name || '',
           phone: data.phone || '',
@@ -112,10 +120,10 @@ export const useProfile = () => {
           github_url: data.github_url || '',
           portfolio_url: data.portfolio_url || '',
           bio: data.bio || '',
-          professional_experience: data.professional_experience || [],
-          projects: data.projects || [],
-          certificates: data.certificates || [],
-          languages: data.languages || [],
+          professional_experience: Array.isArray(data.professional_experience) ? data.professional_experience : [],
+          projects: Array.isArray(data.projects) ? data.projects : [],
+          certificates: Array.isArray(data.certificates) ? data.certificates : [],
+          languages: Array.isArray(data.languages) ? data.languages : [],
           interests: data.interests?.join(', ') || '',
           declaration: data.declaration || ''
         });

@@ -41,6 +41,18 @@ interface ResumeData {
     description: string;
     technologies: string;
   }>;
+  certificates: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+    credentialId?: string;
+  }>;
+  languages: Array<{
+    name: string;
+    proficiency: string;
+  }>;
+  interests: string[];
+  declaration: string;
 }
 
 const templates = [
@@ -110,7 +122,11 @@ const sampleData: ResumeData = {
       description: 'Full-stack web application with real-time inventory management and payment processing.',
       technologies: 'React, Node.js, MongoDB, Stripe API'
     }
-  ]
+  ],
+  certificates: [],
+  languages: [],
+  interests: [],
+  declaration: ''
 };
 
 const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
@@ -129,7 +145,11 @@ const ResumeBuilderPage = ({ onBack }: { onBack: () => void }) => {
     experience: [{ company: '', position: '', duration: '', description: '' }],
     education: [{ institution: '', degree: '', year: '', gpa: '' }],
     skills: [],
-    projects: [{ name: '', description: '', technologies: '' }]
+    projects: [{ name: '', description: '', technologies: '' }],
+    certificates: [],
+    languages: [],
+    interests: [],
+    declaration: ''
   });
   const [activeTab, setActiveTab] = useState('template');
 

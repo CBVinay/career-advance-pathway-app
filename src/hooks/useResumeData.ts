@@ -94,7 +94,7 @@ export const useResumeData = () => {
             portfolio: data.portfolio_url || ''
           },
           summary: data.bio || '',
-          experience: data.professional_experience || [],
+          experience: Array.isArray(data.professional_experience) ? data.professional_experience : [],
           education: [{
             institution: data.university || '',
             degree: data.degree || '',
@@ -102,9 +102,9 @@ export const useResumeData = () => {
             gpa: ''
           }].filter(edu => edu.institution),
           skills: data.skills || [],
-          projects: data.projects || [],
-          certificates: data.certificates || [],
-          languages: data.languages || [],
+          projects: Array.isArray(data.projects) ? data.projects : [],
+          certificates: Array.isArray(data.certificates) ? data.certificates : [],
+          languages: Array.isArray(data.languages) ? data.languages : [],
           interests: data.interests || [],
           declaration: data.declaration || ''
         });

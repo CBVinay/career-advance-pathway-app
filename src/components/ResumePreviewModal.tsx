@@ -37,6 +37,18 @@ interface ResumeData {
     description: string;
     technologies: string;
   }>;
+  certificates: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+    credentialId?: string;
+  }>;
+  languages: Array<{
+    name: string;
+    proficiency: string;
+  }>;
+  interests: string[];
+  declaration: string;
 }
 
 interface ResumePreviewModalProps {

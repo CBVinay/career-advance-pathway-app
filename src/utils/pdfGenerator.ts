@@ -29,6 +29,18 @@ interface ResumeData {
     description: string;
     technologies: string;
   }>;
+  certificates: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+    credentialId?: string;
+  }>;
+  languages: Array<{
+    name: string;
+    proficiency: string;
+  }>;
+  interests: string[];
+  declaration: string;
 }
 
 export const generateResumePDF = (data: ResumeData, templateName: string) => {
@@ -200,6 +212,92 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       }
       yPosition += 8;
     });
+  }
+
+  // Certificates
+  if (data.certificates.some(cert => cert.name)) {
+    if (yPosition > 200) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('CERTIFICATES', margin, yPosition);
+    yPosition += 10;
+
+    data.certificates.filter(cert => cert.name).forEach(cert => {
+      if (yPosition > 240) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(cert.name, margin, yPosition);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(cert.date, pageWidth - margin - 50, yPosition);
+      yPosition += 8;
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'italic');
+      pdf.text(cert.issuer, margin, yPosition);
+      yPosition += 8;
+    });
+  }
+
+  // Languages
+  if (data.languages.some(lang => lang.name)) {
+    if (yPosition > 240) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('LANGUAGES', margin, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const languageText = data.languages.filter(lang => lang.name).map(lang => `${lang.name} (${lang.proficiency})`).join(', ');
+    yPosition = addText(languageText, margin, yPosition, pageWidth - 2 * margin);
+    yPosition += 10;
+  }
+
+  // Interests
+  if (data.interests.length > 0) {
+    if (yPosition > 240) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('INTERESTS', margin, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    yPosition = addText(data.interests.join(', '), margin, yPosition, pageWidth - 2 * margin);
+    yPosition += 10;
+  }
+
+  // Declaration
+  if (data.declaration) {
+    if (yPosition > 200) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('DECLARATION', margin, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    yPosition = addText(data.declaration, margin, yPosition, pageWidth - 2 * margin);
   }
 
   // Download the PDF
