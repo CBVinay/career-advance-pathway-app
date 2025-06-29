@@ -84,41 +84,43 @@ export const useResumeData = () => {
       }
 
       if (data) {
+        console.log('Fetched profile data:', data); // Debug log to check declaration value
+        
         // Type-safe casting for JSONB arrays
         const professionalExperience = Array.isArray(data.professional_experience) 
-          ? data.professional_experience as Array<{
+          ? (data.professional_experience as Array<{
               company: string;
               position: string;
               duration: string;
               description: string;
-            }>
+            }>)
           : [];
 
         const projects = Array.isArray(data.projects)
-          ? data.projects as Array<{
+          ? (data.projects as Array<{
               name: string;
               description: string;
               technologies: string;
-            }>
+            }>)
           : [];
 
         const certificates = Array.isArray(data.certificates)
-          ? data.certificates as Array<{
+          ? (data.certificates as Array<{
               name: string;
               issuer: string;
               date: string;
               credentialId?: string;
-            }>
+            }>)
           : [];
 
         const languages = Array.isArray(data.languages)
-          ? data.languages as Array<{
+          ? (data.languages as Array<{
               name: string;
               proficiency: string;
-            }>
+            }>)
           : [];
 
-        setResumeData({
+        const resumeDataToSet = {
           personalInfo: {
             fullName: data.full_name || '',
             email: data.email || '',
@@ -141,7 +143,10 @@ export const useResumeData = () => {
           languages: languages,
           interests: data.interests || [],
           declaration: data.declaration || ''
-        });
+        };
+
+        console.log('Setting resume data with declaration:', resumeDataToSet.declaration); // Debug log
+        setResumeData(resumeDataToSet);
       }
     } catch (error) {
       console.error('Error:', error);
