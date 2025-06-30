@@ -1,5 +1,6 @@
 
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ResumeData {
   personalInfo: {
@@ -43,981 +44,789 @@ interface ResumeData {
   declaration: string;
 }
 
-export const generateResumePDF = (data: ResumeData, templateName: string) => {
-  const pdf = new jsPDF();
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let yPosition = 20;
-
-  // Helper functions
-  const addText = (text: string, x: number, y: number, maxWidth: number, fontSize = 11, align: 'left' | 'center' | 'right' = 'left') => {
-    pdf.setFontSize(fontSize);
-    const lines = pdf.splitTextToSize(text, maxWidth);
+export const generateResumePDF = async (data: ResumeData, templateName: string) => {
+  try {
+    // Create a temporary container for the template
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = '210mm';
+    tempContainer.style.minHeight = '297mm';
+    tempContainer.style.backgroundColor = 'white';
+    tempContainer.style.zIndex = '-1';
     
-    if (align === 'center') {
-      lines.forEach((line: string, index: number) => {
-        const textWidth = pdf.getTextWidth(line);
-        pdf.text(line, x - textWidth / 2, y + (index * fontSize * 0.4));
-      });
-    } else if (align === 'right') {
-      lines.forEach((line: string, index: number) => {
-        const textWidth = pdf.getTextWidth(line);
-        pdf.text(line, x - textWidth, y + (index * fontSize * 0.4));
-      });
-    } else {
-      pdf.text(lines, x, y);
-    }
+    // Add the container to body
+    document.body.appendChild(tempContainer);
+
+    // Create the template HTML based on selected template
+    tempContainer.innerHTML = createTemplateHTML(data, templateName);
+
+    // Wait a bit for fonts and styles to load
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Generate canvas from the HTML
+    const canvas = await html2canvas(tempContainer, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: 794, // A4 width in pixels at 96 DPI
+      height: 1123, // A4 height in pixels at 96 DPI
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    // Remove the temporary container
+    document.body.removeChild(tempContainer);
+
+    // Create PDF
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvas.toDataURL('image/png');
     
-    return y + (lines.length * fontSize * 0.4);
-  };
-
-  const checkPageBreak = (requiredSpace: number) => {
-    if (yPosition + requiredSpace > pageHeight - 20) {
-      pdf.addPage();
-      yPosition = 20;
-      return true;
+    // Calculate dimensions
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Add image to PDF
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    
+    // If content is longer than one page, add additional pages
+    if (imgHeight > 297) {
+      let heightLeft = imgHeight - 297;
+      let position = -297;
+      
+      while (heightLeft > 0) {
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= 297;
+        position -= 297;
+      }
     }
-    return false;
-  };
 
-  const addSectionHeader = (title: string, x: number, color: number[] = [0, 0, 0]) => {
-    checkPageBreak(25);
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(color[0], color[1], color[2]);
-    pdf.text(title, x, yPosition);
-    yPosition += 15;
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFont('helvetica', 'normal');
-  };
-
-  // Template-specific generators
-  if (templateName === 'Modern Professional') {
-    generateModernPDF();
-  } else if (templateName === 'Classic Executive') {
-    generateClassicPDF();
-  } else if (templateName === 'Creative Designer') {
-    generateCreativePDF();
-  } else if (templateName === 'Minimal Clean') {
-    generateMinimalPDF();
-  } else {
-    generateModernPDF(); // Default
+    // Download the PDF
+    const fileName = `${data.personalInfo.fullName || 'Resume'}_${templateName.replace(/\s+/g, '_')}.pdf`;
+    pdf.save(fileName);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Error generating PDF. Please try again.');
   }
+};
 
-  function generateModernPDF() {
-    // Header with gradient background effect
-    pdf.setFillColor(37, 99, 235);
-    pdf.rect(0, 0, pageWidth, 60, 'F');
-    
-    // Name in white
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(24);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(data.personalInfo.fullName || 'Your Name', 20, 30);
-    
-    // Contact info
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(191, 219, 254);
-    const contactLine1 = [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location].filter(Boolean).join(' | ');
-    pdf.text(contactLine1, 20, 42);
-    
-    if (data.personalInfo.linkedin || data.personalInfo.portfolio) {
-      const contactLine2 = [data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).join(' | ');
-      pdf.text(contactLine2, 20, 52);
-    }
-    
-    yPosition = 75;
-    pdf.setTextColor(0, 0, 0);
+const createTemplateHTML = (data: ResumeData, templateName: string): string => {
+  const baseStyles = `
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.5;
+        color: #333;
+      }
+      .container {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 32px;
+        background: white;
+      }
+      .section {
+        margin-bottom: 24px;
+      }
+      .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .mb-2 { margin-bottom: 8px; }
+      .mb-3 { margin-bottom: 12px; }
+      .mb-4 { margin-bottom: 16px; }
+      .mb-6 { margin-bottom: 24px; }
+      .font-bold { font-weight: bold; }
+      .text-sm { font-size: 14px; }
+      .text-xs { font-size: 12px; }
+      .flex { display: flex; }
+      .justify-between { justify-content: space-between; }
+      .items-start { align-items: flex-start; }
+      .text-right { text-align: right; }
+      .text-center { text-align: center; }
+    </style>
+  `;
 
-    // Professional Summary
-    if (data.summary) {
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('PROFESSIONAL SUMMARY', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-      
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(11);
-      yPosition = addText(data.summary, 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Experience
-    if (data.experience.some(exp => exp.company)) {
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('EXPERIENCE', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      data.experience.filter(exp => exp.company).forEach(exp => {
-        checkPageBreak(50);
-        
-        // Position and duration
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(exp.position, 20, yPosition);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        const durationWidth = pdf.getTextWidth(exp.duration);
-        pdf.text(exp.duration, pageWidth - 20 - durationWidth, yPosition);
-        yPosition += 12;
-
-        // Company
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(37, 99, 235);
-        pdf.text(exp.company, 20, yPosition);
-        yPosition += 10;
-
-        // Description
-        if (exp.description) {
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFontSize(10);
-          yPosition = addText(exp.description, 20, yPosition, pageWidth - 40);
-        }
-        yPosition += 12;
-      });
-    }
-
-    // Education
-    if (data.education.some(edu => edu.institution)) {
-      checkPageBreak(40);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('EDUCATION', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      data.education.filter(edu => edu.institution).forEach(edu => {
-        checkPageBreak(25);
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(edu.degree, 20, yPosition);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        const yearWidth = pdf.getTextWidth(edu.year);
-        pdf.text(edu.year, pageWidth - 20 - yearWidth, yPosition);
-        yPosition += 10;
-
-        pdf.setFontSize(11);
-        pdf.setTextColor(37, 99, 235);
-        pdf.text(edu.institution, 20, yPosition);
-        
-        if (edu.gpa) {
-          const gpaText = `GPA: ${edu.gpa}`;
-          const gpaWidth = pdf.getTextWidth(gpaText);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text(gpaText, pageWidth - 20 - gpaWidth, yPosition);
-        }
-        yPosition += 15;
-      });
-    }
-
-    // Skills
-    if (data.skills.length > 0) {
-      checkPageBreak(30);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('SKILLS', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      // Skills as pills simulation
-      let currentX = 20;
-      let currentY = yPosition;
-      
-      data.skills.forEach((skill, index) => {
-        pdf.setFontSize(10);
-        const skillWidth = pdf.getTextWidth(skill) + 12;
-        
-        if (currentX + skillWidth > pageWidth - 20) {
-          currentX = 20;
-          currentY += 20;
-        }
-        
-        // Draw pill background
-        pdf.setFillColor(219, 234, 254);
-        pdf.roundedRect(currentX, currentY - 8, skillWidth, 14, 7, 7, 'F');
-        
-        // Draw skill text
-        pdf.setTextColor(37, 99, 235);
-        pdf.text(skill, currentX + 6, currentY);
-        
-        currentX += skillWidth + 8;
-      });
-      
-      yPosition = currentY + 20;
-    }
-
-    // Add remaining sections
-    addRemainingModernSections();
+  switch (templateName) {
+    case 'Modern Professional':
+      return baseStyles + createModernHTML(data);
+    case 'Classic Executive':
+      return baseStyles + createClassicHTML(data);
+    case 'Creative Designer':
+      return baseStyles + createCreativeHTML(data);
+    case 'Minimal Clean':
+      return baseStyles + createMinimalHTML(data);
+    default:
+      return baseStyles + createModernHTML(data);
   }
-
-  function generateClassicPDF() {
-    // Centered header
-    pdf.setFontSize(22);
-    pdf.setFont('helvetica', 'bold');
-    yPosition = addText(data.personalInfo.fullName || 'Your Name', pageWidth/2, yPosition, pageWidth - 40, 22, 'center');
-    
-    // Underline
-    pdf.setLineWidth(2);
-    pdf.setDrawColor(0, 0, 0);
-    pdf.line(20, yPosition + 5, pageWidth - 20, yPosition + 5);
-    yPosition += 20;
-    
-    // Contact info centered
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'normal');
-    const contactInfo = [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location].filter(Boolean).join(' | ');
-    yPosition = addText(contactInfo, pageWidth/2, yPosition, pageWidth - 40, 11, 'center');
-    yPosition += 8;
-    
-    if (data.personalInfo.linkedin || data.personalInfo.portfolio) {
-      const links = [data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).join(' | ');
-      yPosition = addText(links, pageWidth/2, yPosition, pageWidth - 40, 11, 'center');
-    }
-    yPosition += 20;
-
-    // Sections with classic styling
-    const classicSectionHeader = (title: string) => {
-      checkPageBreak(25);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(title.toUpperCase(), 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.line(20, yPosition + 3, pageWidth - 20, yPosition + 3);
-      yPosition += 18;
-      pdf.setFont('helvetica', 'normal');
-    };
-
-    // Professional Summary
-    if (data.summary) {
-      classicSectionHeader('Professional Summary');
-      pdf.setFontSize(11);
-      yPosition = addText(data.summary, 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Experience
-    if (data.experience.some(exp => exp.company)) {
-      classicSectionHeader('Experience');
-      
-      data.experience.filter(exp => exp.company).forEach(exp => {
-        checkPageBreak(50);
-        
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(exp.position, 20, yPosition);
-        
-        pdf.setFont('helvetica', 'italic');
-        pdf.setFontSize(10);
-        const durationWidth = pdf.getTextWidth(exp.duration);
-        pdf.text(exp.duration, pageWidth - 20 - durationWidth, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(exp.company, 20, yPosition);
-        yPosition += 12;
-
-        if (exp.description) {
-          pdf.setFontSize(10);
-          yPosition = addText(exp.description, 20, yPosition, pageWidth - 40);
-        }
-        yPosition += 15;
-      });
-    }
-
-    // Add remaining classic sections
-    addRemainingClassicSections(classicSectionHeader);
-  }
-
-  function generateCreativePDF() {
-    // Two-column layout simulation
-    const leftWidth = pageWidth * 0.35;
-    const rightX = leftWidth + 10;
-    const rightWidth = pageWidth - rightX - 20;
-
-    // Left column background
-    pdf.setFillColor(236, 72, 153);
-    pdf.rect(0, 0, leftWidth, pageHeight, 'F');
-
-    // Header in left column
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(20);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(data.personalInfo.fullName || 'Your Name', 15, 30);
-    
-    // Contact info
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(252, 231, 243);
-    let leftY = 50;
-    
-    [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location, data.personalInfo.linkedin, data.personalInfo.portfolio]
-      .filter(Boolean).forEach(info => {
-        pdf.text(info, 15, leftY);
-        leftY += 12;
-      });
-
-    // Skills in left column
-    if (data.skills.length > 0) {
-      leftY += 20;
-      pdf.setTextColor(254, 240, 138);
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('SKILLS', 15, leftY);
-      leftY += 15;
-      
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'normal');
-      data.skills.forEach(skill => {
-        pdf.setFillColor(255, 255, 255, 0.2);
-        pdf.roundedRect(15, leftY - 8, leftWidth - 25, 12, 6, 6, 'F');
-        pdf.text(skill, 20, leftY);
-        leftY += 18;
-      });
-    }
-
-    // Education in left column
-    if (data.education.some(edu => edu.institution)) {
-      leftY += 20;
-      pdf.setTextColor(254, 240, 138);
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('EDUCATION', 15, leftY);
-      leftY += 15;
-      
-      data.education.filter(edu => edu.institution).forEach(edu => {
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(edu.degree, 15, leftY);
-        leftY += 10;
-        
-        pdf.setTextColor(252, 231, 243);
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(edu.institution, 15, leftY);
-        leftY += 8;
-        pdf.text(edu.year, 15, leftY);
-        leftY += 15;
-      });
-    }
-
-    // Right column content
-    yPosition = 30;
-    pdf.setTextColor(0, 0, 0);
-
-    const creativeSectionHeader = (title: string) => {
-      checkPageBreak(25);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(236, 72, 153);
-      pdf.text(title, rightX, yPosition);
-      pdf.setFillColor(236, 72, 153);
-      pdf.rect(rightX, yPosition + 3, 25, 2, 'F');
-      yPosition += 20;
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFont('helvetica', 'normal');
-    };
-
-    // Professional Summary
-    if (data.summary) {
-      creativeSectionHeader('ABOUT ME');
-      pdf.setFontSize(11);
-      yPosition = addText(data.summary, rightX, yPosition, rightWidth);
-      yPosition += 15;
-    }
-
-    // Experience
-    if (data.experience.some(exp => exp.company)) {
-      creativeSectionHeader('EXPERIENCE');
-      
-      data.experience.filter(exp => exp.company).forEach(exp => {
-        checkPageBreak(50);
-        
-        // Bullet point
-        pdf.setFillColor(236, 72, 153);
-        pdf.circle(rightX + 5, yPosition - 3, 2, 'F');
-        
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(exp.position, rightX + 15, yPosition);
-        
-        // Duration in box
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'normal');
-        const durationWidth = pdf.getTextWidth(exp.duration);
-        pdf.setFillColor(243, 244, 246);
-        pdf.rect(rightX + rightWidth - durationWidth - 12, yPosition - 8, durationWidth + 10, 12, 'F');
-        pdf.text(exp.duration, rightX + rightWidth - durationWidth - 7, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(11);
-        pdf.setTextColor(236, 72, 153);
-        pdf.text(exp.company, rightX + 15, yPosition);
-        yPosition += 10;
-
-        if (exp.description) {
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFontSize(10);
-          yPosition = addText(exp.description, rightX + 15, yPosition, rightWidth - 15);
-        }
-        yPosition += 15;
-      });
-    }
-
-    // Add remaining creative sections
-    addRemainingCreativeSections(creativeSectionHeader, rightX, rightWidth);
-  }
-
-  function generateMinimalPDF() {
-    // Large thin name
-    pdf.setFontSize(32);
-    pdf.setFont('helvetica', 'thin');
-    pdf.setTextColor(17, 24, 39);
-    pdf.text(data.personalInfo.fullName || 'Your Name', 20, yPosition);
-    yPosition += 25;
-    
-    // Contact info with dots
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(107, 114, 128);
-    const contactInfo = [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location].filter(Boolean).join(' • ');
-    pdf.text(contactInfo, 20, yPosition);
-    yPosition += 12;
-    
-    if (data.personalInfo.linkedin || data.personalInfo.portfolio) {
-      const links = [data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).join(' • ');
-      pdf.text(links, 20, yPosition);
-    }
-    yPosition += 25;
-    pdf.setTextColor(0, 0, 0);
-
-    const minimalSectionHeader = (title: string) => {
-      checkPageBreak(25);
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'medium');
-      pdf.setTextColor(17, 24, 39);
-      pdf.text(title.toUpperCase(), 20, yPosition);
-      pdf.setFillColor(34, 197, 94);
-      pdf.rect(20, yPosition + 3, 12, 1, 'F');
-      yPosition += 20;
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFont('helvetica', 'thin');
-    };
-
-    // Professional Summary
-    if (data.summary) {
-      minimalSectionHeader('Summary');
-      pdf.setFontSize(11);
-      yPosition = addText(data.summary, 20, yPosition, pageWidth - 40);
-      yPosition += 20;
-    }
-
-    // Experience
-    if (data.experience.some(exp => exp.company)) {
-      minimalSectionHeader('Experience');
-      
-      data.experience.filter(exp => exp.company).forEach(exp => {
-        checkPageBreak(50);
-        
-        pdf.setFontSize(16);
-        pdf.setFont('helvetica', 'thin');
-        pdf.text(exp.position, 20, yPosition);
-        
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        const durationWidth = pdf.getTextWidth(exp.duration);
-        pdf.text(exp.duration, pageWidth - 20 - durationWidth, yPosition);
-        yPosition += 15;
-
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'thin');
-        pdf.setTextColor(34, 197, 94);
-        pdf.text(exp.company, 20, yPosition);
-        yPosition += 12;
-
-        if (exp.description) {
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFontSize(11);
-          yPosition = addText(exp.description, 20, yPosition, pageWidth - 40);
-        }
-        yPosition += 20;
-      });
-    }
-
-    // Add remaining minimal sections
-    addRemainingMinimalSections(minimalSectionHeader);
-  }
-
-  // Helper functions for remaining sections
-  function addRemainingModernSections() {
-    // Projects
-    if (data.projects.some(proj => proj.name)) {
-      checkPageBreak(40);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('PROJECTS', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      data.projects.filter(proj => proj.name).forEach(proj => {
-        checkPageBreak(35);
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(proj.name, 20, yPosition);
-        yPosition += 12;
-
-        if (proj.technologies) {
-          pdf.setFontSize(10);
-          pdf.setTextColor(37, 99, 235);
-          pdf.setFont('helvetica', 'italic');
-          pdf.text(proj.technologies, 20, yPosition);
-          yPosition += 10;
-        }
-
-        if (proj.description) {
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          yPosition = addText(proj.description, 20, yPosition, pageWidth - 40);
-        }
-        yPosition += 15;
-      });
-    }
-
-    // Certificates
-    if (data.certificates && data.certificates.some(cert => cert.name)) {
-      checkPageBreak(30);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('CERTIFICATES', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      data.certificates.filter(cert => cert.name).forEach(cert => {
-        checkPageBreak(25);
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(cert.name, 20, yPosition);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        const dateWidth = pdf.getTextWidth(cert.date);
-        pdf.text(cert.date, pageWidth - 20 - dateWidth, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(11);
-        pdf.setTextColor(37, 99, 235);
-        pdf.text(cert.issuer, 20, yPosition);
-        yPosition += 15;
-      });
-    }
-
-    // Languages
-    if (data.languages && data.languages.some(lang => lang.name)) {
-      checkPageBreak(20);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('LANGUAGES', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      const languageText = data.languages.filter(lang => lang.name)
-        .map(lang => `${lang.name} (${lang.proficiency})`)
-        .join(' • ');
-      yPosition = addText(languageText, 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Interests
-    if (data.interests.length > 0) {
-      checkPageBreak(20);
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(37, 99, 235);
-      pdf.text('INTERESTS', 20, yPosition);
-      pdf.setLineWidth(2);
-      pdf.setDrawColor(37, 99, 235);
-      pdf.line(20, yPosition + 3, 80, yPosition + 3);
-      yPosition += 15;
-
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      yPosition = addText(data.interests.join(' • '), 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Declaration
-    checkPageBreak(30);
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(37, 99, 235);
-    pdf.text('DECLARATION', 20, yPosition);
-    pdf.setLineWidth(2);
-    pdf.setDrawColor(37, 99, 235);
-    pdf.line(20, yPosition + 3, 80, yPosition + 3);
-    yPosition += 15;
-
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'normal');
-    const declarationText = data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.';
-    yPosition = addText(declarationText, 20, yPosition, pageWidth - 40);
-  }
-
-  function addRemainingClassicSections(sectionHeader: (title: string) => void) {
-    // Education
-    if (data.education.some(edu => edu.institution)) {
-      sectionHeader('Education');
-      
-      data.education.filter(edu => edu.institution).forEach(edu => {
-        checkPageBreak(25);
-        
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(edu.degree, 20, yPosition);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        const yearWidth = pdf.getTextWidth(edu.year);
-        pdf.text(edu.year, pageWidth - 20 - yearWidth, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'italic');
-        pdf.text(edu.institution, 20, yPosition);
-        
-        if (edu.gpa) {
-          const gpaText = `GPA: ${edu.gpa}`;
-          const gpaWidth = pdf.getTextWidth(gpaText);
-          pdf.text(gpaText, pageWidth - 20 - gpaWidth, yPosition);
-        }
-        yPosition += 18;
-      });
-    }
-
-    // Skills
-    if (data.skills.length > 0) {
-      sectionHeader('Skills');
-      pdf.setFontSize(11);
-      yPosition = addText(data.skills.join(' • '), 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Projects
-    if (data.projects.some(proj => proj.name)) {
-      sectionHeader('Projects');
-      
-      data.projects.filter(proj => proj.name).forEach(proj => {
-        checkPageBreak(35);
-        
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(proj.name, 20, yPosition);
-        yPosition += 12;
-
-        if (proj.technologies) {
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'italic');
-          pdf.text(proj.technologies, 20, yPosition);
-          yPosition += 10;
-        }
-
-        if (proj.description) {
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          yPosition = addText(proj.description, 20, yPosition, pageWidth - 40);
-        }
-        yPosition += 15;
-      });
-    }
-
-    // Certificates
-    if (data.certificates && data.certificates.some(cert => cert.name)) {
-      sectionHeader('Certificates');
-      
-      data.certificates.filter(cert => cert.name).forEach(cert => {
-        checkPageBreak(25);
-        
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(cert.name, 20, yPosition);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        const dateWidth = pdf.getTextWidth(cert.date);
-        pdf.text(cert.date, pageWidth - 20 - dateWidth, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'italic');
-        pdf.text(cert.issuer, 20, yPosition);
-        yPosition += 15;
-      });
-    }
-
-    // Languages
-    if (data.languages && data.languages.some(lang => lang.name)) {
-      sectionHeader('Languages');
-      pdf.setFontSize(11);
-      const languageText = data.languages.filter(lang => lang.name)
-        .map(lang => `${lang.name} (${lang.proficiency})`)
-        .join(' • ');
-      yPosition = addText(languageText, 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Interests
-    if (data.interests.length > 0) {
-      sectionHeader('Interests');
-      pdf.setFontSize(11);
-      yPosition = addText(data.interests.join(' • '), 20, yPosition, pageWidth - 40);
-      yPosition += 15;
-    }
-
-    // Declaration
-    sectionHeader('Declaration');
-    pdf.setFontSize(11);
-    const declarationText = data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.';
-    yPosition = addText(declarationText, 20, yPosition, pageWidth - 40);
-  }
-
-  function addRemainingCreativeSections(sectionHeader: (title: string) => void, rightX: number, rightWidth: number) {
-    // Projects
-    if (data.projects.some(proj => proj.name)) {
-      sectionHeader('PROJECTS');
-      
-      data.projects.filter(proj => proj.name).forEach(proj => {
-        checkPageBreak(40);
-        
-        // Project card background
-        pdf.setFillColor(249, 250, 251);
-        pdf.rect(rightX, yPosition - 10, rightWidth, 35, 'F');
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(proj.name, rightX + 10, yPosition);
-        yPosition += 12;
-
-        if (proj.technologies) {
-          pdf.setFontSize(10);
-          pdf.setTextColor(236, 72, 153);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(proj.technologies, rightX + 10, yPosition);
-          yPosition += 10;
-        }
-
-        if (proj.description) {
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFontSize(9);
-          yPosition = addText(proj.description, rightX + 10, yPosition, rightWidth - 20);
-        }
-        yPosition += 20;
-      });
-    }
-
-    // Certificates
-    if (data.certificates && data.certificates.some(cert => cert.name)) {
-      sectionHeader('CERTIFICATES');
-      
-      data.certificates.filter(cert => cert.name).forEach(cert => {
-        checkPageBreak(30);
-        
-        // Certificate card background
-        pdf.setFillColor(249, 250, 251);
-        pdf.rect(rightX, yPosition - 10, rightWidth, 25, 'F');
-        
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(cert.name, rightX + 10, yPosition);
-        yPosition += 10;
-
-        pdf.setFontSize(10);
-        pdf.setTextColor(236, 72, 153);
-        pdf.text(cert.issuer, rightX + 10, yPosition);
-        yPosition += 8;
-
-        pdf.setTextColor(107, 114, 128);
-        pdf.text(cert.date, rightX + 10, yPosition);
-        yPosition += 15;
-      });
-    }
-
-    // Declaration
-    sectionHeader('DECLARATION');
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'normal');
-    const declarationText = data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.';
-    yPosition = addText(declarationText, rightX, yPosition, rightWidth);
-  }
-
-  function addRemainingMinimalSections(sectionHeader: (title: string) => void) {
-    // Education
-    if (data.education.some(edu => edu.institution)) {
-      sectionHeader('Education');
-      
-      data.education.filter(edu => edu.institution).forEach(edu => {
-        checkPageBreak(25);
-        
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'thin');
-        pdf.text(edu.degree, 20, yPosition);
-        
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        const yearWidth = pdf.getTextWidth(edu.year);
-        pdf.text(edu.year, pageWidth - 20 - yearWidth, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'thin');
-        pdf.setTextColor(34, 197, 94);
-        pdf.text(edu.institution, 20, yPosition);
-        
-        if (edu.gpa) {
-          pdf.setTextColor(107, 114, 128);
-          const gpaText = `GPA: ${edu.gpa}`;
-          const gpaWidth = pdf.getTextWidth(gpaText);
-          pdf.text(gpaText, pageWidth - 20 - gpaWidth, yPosition);
-        }
-        yPosition += 20;
-        pdf.setTextColor(0, 0, 0);
-      });
-    }
-
-    // Skills
-    if (data.skills.length > 0) {
-      sectionHeader('Skills');
-      pdf.setFontSize(11);
-      yPosition = addText(data.skills.join('  •  '), 20, yPosition, pageWidth - 40);
-      yPosition += 20;
-    }
-
-    // Projects
-    if (data.projects.some(proj => proj.name)) {
-      sectionHeader('Projects');
-      
-      data.projects.filter(proj => proj.name).forEach(proj => {
-        checkPageBreak(35);
-        
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'thin');
-        pdf.text(proj.name, 20, yPosition);
-        yPosition += 12;
-
-        if (proj.technologies) {
-          pdf.setFontSize(10);
-          pdf.setTextColor(34, 197, 94);
-          pdf.text(proj.technologies, 20, yPosition);
-          yPosition += 10;
-        }
-
-        if (proj.description) {
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFontSize(11);
-          yPosition = addText(proj.description, 20, yPosition, pageWidth - 40);
-        }
-        yPosition += 20;
-      });
-    }
-
-    // Certificates
-    if (data.certificates && data.certificates.some(cert => cert.name)) {
-      sectionHeader('Certificates');
-      
-      data.certificates.filter(cert => cert.name).forEach(cert => {
-        checkPageBreak(25);
-        
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'thin');
-        pdf.text(cert.name, 20, yPosition);
-        
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        const dateWidth = pdf.getTextWidth(cert.date);
-        pdf.text(cert.date, pageWidth - 20 - dateWidth, yPosition);
-        yPosition += 12;
-
-        pdf.setFontSize(12);
-        pdf.setTextColor(34, 197, 94);
-        pdf.text(cert.issuer, 20, yPosition);
-        yPosition += 20;
-        pdf.setTextColor(0, 0, 0);
-      });
-    }
-
-    // Languages
-    if (data.languages && data.languages.some(lang => lang.name)) {
-      sectionHeader('Languages');
-      pdf.setFontSize(11);
-      const languageText = data.languages.filter(lang => lang.name)
-        .map(lang => `${lang.name} (${lang.proficiency})`)
-        .join('  •  ');
-      yPosition = addText(languageText, 20, yPosition, pageWidth - 40);
-      yPosition += 20;
-    }
-
-    // Interests
-    if (data.interests.length > 0) {
-      sectionHeader('Interests');
-      pdf.setFontSize(11);
-      yPosition = addText(data.interests.join('  •  '), 20, yPosition, pageWidth - 40);
-      yPosition += 20;
-    }
-
-    // Declaration
-    sectionHeader('Declaration');
-    pdf.setFontSize(11);
-    const declarationText = data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.';
-    yPosition = addText(declarationText, 20, yPosition, pageWidth - 40);
-  }
-
-  // Download the PDF
-  const fileName = `${data.personalInfo.fullName || 'Resume'}_${templateName.replace(/\s+/g, '_')}.pdf`;
-  pdf.save(fileName);
+};
+
+const createModernHTML = (data: ResumeData): string => {
+  return `
+    <style>
+      .modern-header {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: white;
+        padding: 24px;
+        margin: -32px -32px 24px -32px;
+      }
+      .modern-name {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+      .modern-contact {
+        color: #bfdbfe;
+        font-size: 14px;
+      }
+      .modern-section-title {
+        color: #2563eb;
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 4px;
+        margin-bottom: 16px;
+      }
+      .modern-company {
+        color: #2563eb;
+        font-weight: 500;
+      }
+      .skill-pill {
+        display: inline-block;
+        background: #dbeafe;
+        color: #1d4ed8;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        margin: 2px 4px 2px 0;
+        font-weight: 500;
+      }
+    </style>
+    <div class="container">
+      <div class="modern-header">
+        <div class="modern-name">${data.personalInfo.fullName || 'Your Name'}</div>
+        <div class="modern-contact">
+          ${[data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location].filter(Boolean).join(' | ')}<br>
+          ${[data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).join(' | ')}
+        </div>
+      </div>
+
+      ${data.summary ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Professional Summary</h2>
+          <p>${data.summary}</p>
+        </div>
+      ` : ''}
+
+      ${data.experience.some(exp => exp.company) ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Experience</h2>
+          ${data.experience.filter(exp => exp.company).map(exp => `
+            <div class="mb-4">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold">${exp.position}</h3>
+                <span class="text-sm">${exp.duration}</span>
+              </div>
+              <p class="modern-company mb-2">${exp.company}</p>
+              ${exp.description ? `<p class="text-sm">${exp.description}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.education.some(edu => edu.institution) ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Education</h2>
+          ${data.education.filter(edu => edu.institution).map(edu => `
+            <div class="mb-3">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-bold">${edu.degree}</h3>
+                  <p class="modern-company">${edu.institution}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm">${edu.year}</p>
+                  ${edu.gpa ? `<p class="text-xs">GPA: ${edu.gpa}</p>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.skills.length > 0 ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Skills</h2>
+          <div>
+            ${data.skills.map(skill => `<span class="skill-pill">${skill}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${data.projects.some(proj => proj.name) ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Projects</h2>
+          ${data.projects.filter(proj => proj.name).map(proj => `
+            <div class="mb-4">
+              <h3 class="font-bold">${proj.name}</h3>
+              ${proj.technologies ? `<p class="text-sm modern-company mb-2">${proj.technologies}</p>` : ''}
+              ${proj.description ? `<p class="text-sm">${proj.description}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.certificates && data.certificates.some(cert => cert.name) ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Certificates</h2>
+          ${data.certificates.filter(cert => cert.name).map(cert => `
+            <div class="mb-3">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-bold">${cert.name}</h3>
+                  <p class="modern-company">${cert.issuer}</p>
+                </div>
+                <p class="text-sm">${cert.date}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.languages && data.languages.some(lang => lang.name) ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Languages</h2>
+          <div>
+            ${data.languages.filter(lang => lang.name).map(lang => `<span class="skill-pill">${lang.name} (${lang.proficiency})</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${data.interests && data.interests.length > 0 ? `
+        <div class="section">
+          <h2 class="section-title modern-section-title">Interests</h2>
+          <div>
+            ${data.interests.map(interest => `<span class="skill-pill">${interest}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="section">
+        <h2 class="section-title modern-section-title">Declaration</h2>
+        <p>${data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}</p>
+      </div>
+    </div>
+  `;
+};
+
+const createClassicHTML = (data: ResumeData): string => {
+  return `
+    <style>
+      .classic-container {
+        font-family: 'Times New Roman', serif;
+      }
+      .classic-header {
+        text-align: center;
+        border-bottom: 2px solid #333;
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+      }
+      .classic-name {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 12px;
+      }
+      .classic-contact {
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .classic-section-title {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-bottom: 2px solid #333;
+        padding-bottom: 4px;
+        margin-bottom: 16px;
+      }
+      .classic-company {
+        font-style: italic;
+      }
+    </style>
+    <div class="container classic-container">
+      <div class="classic-header">
+        <h1 class="classic-name">${data.personalInfo.fullName || 'Your Name'}</h1>
+        <div class="classic-contact">
+          <p>${[data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location].filter(Boolean).join(' | ')}</p>
+          ${[data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).length > 0 ? 
+            `<p>${[data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).join(' | ')}</p>` : ''}
+        </div>
+      </div>
+
+      ${data.summary ? `
+        <div class="section">
+          <h2 class="classic-section-title">Professional Summary</h2>
+          <p>${data.summary}</p>
+        </div>
+      ` : ''}
+
+      ${data.experience.some(exp => exp.company) ? `
+        <div class="section">
+          <h2 class="classic-section-title">Experience</h2>
+          ${data.experience.filter(exp => exp.company).map(exp => `
+            <div class="mb-4">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold">${exp.position}</h3>
+                <span class="text-sm classic-company">${exp.duration}</span>
+              </div>
+              <p class="mb-2">${exp.company}</p>
+              ${exp.description ? `<p class="text-sm">${exp.description}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.education.some(edu => edu.institution) ? `
+        <div class="section">
+          <h2 class="classic-section-title">Education</h2>
+          ${data.education.filter(edu => edu.institution).map(edu => `
+            <div class="mb-3">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-bold">${edu.degree}</h3>
+                  <p class="classic-company">${edu.institution}</p>
+                </div>
+                <div class="text-right">
+                  <p>${edu.year}</p>
+                  ${edu.gpa ? `<p class="text-sm">GPA: ${edu.gpa}</p>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.skills.length > 0 ? `
+        <div class="section">
+          <h2 class="classic-section-title">Skills</h2>
+          <p>${data.skills.join(' • ')}</p>
+        </div>
+      ` : ''}
+
+      ${data.projects.some(proj => proj.name) ? `
+        <div class="section">
+          <h2 class="classic-section-title">Projects</h2>
+          ${data.projects.filter(proj => proj.name).map(proj => `
+            <div class="mb-4">
+              <h3 class="font-bold">${proj.name}</h3>
+              ${proj.technologies ? `<p class="text-sm classic-company mb-2">${proj.technologies}</p>` : ''}
+              ${proj.description ? `<p class="text-sm">${proj.description}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.certificates && data.certificates.some(cert => cert.name) ? `
+        <div class="section">
+          <h2 class="classic-section-title">Certificates</h2>
+          ${data.certificates.filter(cert => cert.name).map(cert => `
+            <div class="mb-3">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="font-bold">${cert.name}</h3>
+                  <p class="classic-company">${cert.issuer}</p>
+                </div>
+                <p>${cert.date}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.languages && data.languages.some(lang => lang.name) ? `
+        <div class="section">
+          <h2 class="classic-section-title">Languages</h2>
+          <p>${data.languages.filter(lang => lang.name).map(lang => `${lang.name} (${lang.proficiency})`).join(' • ')}</p>
+        </div>
+      ` : ''}
+
+      ${data.interests && data.interests.length > 0 ? `
+        <div class="section">
+          <h2 class="classic-section-title">Interests</h2>
+          <p>${data.interests.join(' • ')}</p>
+        </div>
+      ` : ''}
+
+      <div class="section">
+        <h2 class="classic-section-title">Declaration</h2>
+        <p>${data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}</p>
+      </div>
+    </div>
+  `;
+};
+
+const createCreativeHTML = (data: ResumeData): string => {
+  return `
+    <style>
+      .creative-container {
+        display: flex;
+        min-height: 297mm;
+      }
+      .creative-sidebar {
+        width: 35%;
+        background: linear-gradient(180deg, #ec4899, #f97316);
+        color: white;
+        padding: 24px;
+      }
+      .creative-main {
+        width: 65%;
+        padding: 24px;
+      }
+      .creative-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 16px;
+      }
+      .creative-contact {
+        font-size: 12px;
+        line-height: 1.6;
+        color: #fce7f3;
+        margin-bottom: 24px;
+      }
+      .creative-sidebar-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #fef3c7;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+      }
+      .creative-skill-pill {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 6px 12px;
+        margin: 4px 4px 4px 0;
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .creative-main-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #ec4899;
+        margin-bottom: 8px;
+      }
+      .creative-accent-line {
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, #ec4899, #f97316);
+        margin-bottom: 16px;
+      }
+      .creative-company {
+        color: #ec4899;
+        font-weight: 500;
+      }
+      .creative-card {
+        background: #f9fafb;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+      .creative-bullet {
+        width: 8px;
+        height: 8px;
+        background: #ec4899;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 12px;
+        position: relative;
+        top: -2px;
+      }
+    </style>
+    <div class="creative-container">
+      <div class="creative-sidebar">
+        <div class="creative-name">${data.personalInfo.fullName || 'Your Name'}</div>
+        <div class="creative-contact">
+          ${[data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location, data.personalInfo.linkedin, data.personalInfo.portfolio]
+            .filter(Boolean).map(info => `<div>${info}</div>`).join('')}
+        </div>
+
+        ${data.skills.length > 0 ? `
+          <div class="mb-6">
+            <h3 class="creative-sidebar-title">SKILLS</h3>
+            ${data.skills.map(skill => `<span class="creative-skill-pill">${skill}</span>`).join('')}
+          </div>
+        ` : ''}
+
+        ${data.education.some(edu => edu.institution) ? `
+          <div class="mb-6">
+            <h3 class="creative-sidebar-title">EDUCATION</h3>
+            ${data.education.filter(edu => edu.institution).map(edu => `
+              <div class="mb-4">
+                <div class="font-bold text-sm">${edu.degree}</div>
+                <div class="text-xs" style="color: #fce7f3;">${edu.institution}</div>
+                <div class="text-xs" style="color: #fbcfe8;">${edu.year}</div>
+                ${edu.gpa ? `<div class="text-xs" style="color: #fbcfe8;">GPA: ${edu.gpa}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${data.languages && data.languages.some(lang => lang.name) ? `
+          <div class="mb-6">
+            <h3 class="creative-sidebar-title">LANGUAGES</h3>
+            ${data.languages.filter(lang => lang.name).map(lang => `<span class="creative-skill-pill">${lang.name} (${lang.proficiency})</span>`).join('')}
+          </div>
+        ` : ''}
+
+        ${data.interests && data.interests.length > 0 ? `
+          <div class="mb-6">
+            <h3 class="creative-sidebar-title">INTERESTS</h3>
+            ${data.interests.map(interest => `<span class="creative-skill-pill">${interest}</span>`).join('')}
+          </div>
+        ` : ''}
+      </div>
+
+      <div class="creative-main">
+        ${data.summary ? `
+          <div class="section">
+            <h2 class="creative-main-title">ABOUT ME</h2>
+            <div class="creative-accent-line"></div>
+            <p>${data.summary}</p>
+          </div>
+        ` : ''}
+
+        ${data.experience.some(exp => exp.company) ? `
+          <div class="section">
+            <h2 class="creative-main-title">EXPERIENCE</h2>
+            <div class="creative-accent-line"></div>
+            ${data.experience.filter(exp => exp.company).map(exp => `
+              <div class="mb-6">
+                <div class="flex justify-between items-start mb-2">
+                  <h3 class="font-bold flex items-center">
+                    <span class="creative-bullet"></span>${exp.position}
+                  </h3>
+                  <span class="text-sm" style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">${exp.duration}</span>
+                </div>
+                <p class="creative-company mb-2" style="margin-left: 20px;">${exp.company}</p>
+                ${exp.description ? `<p class="text-sm" style="margin-left: 20px;">${exp.description}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${data.projects.some(proj => proj.name) ? `
+          <div class="section">
+            <h2 class="creative-main-title">PROJECTS</h2>
+            <div class="creative-accent-line"></div>
+            ${data.projects.filter(proj => proj.name).map(proj => `
+              <div class="creative-card">
+                <h3 class="font-bold">${proj.name}</h3>
+                ${proj.technologies ? `<p class="text-sm creative-company mb-2">${proj.technologies}</p>` : ''}
+                ${proj.description ? `<p class="text-sm">${proj.description}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${data.certificates && data.certificates.some(cert => cert.name) ? `
+          <div class="section">
+            <h2 class="creative-main-title">CERTIFICATES</h2>
+            <div class="creative-accent-line"></div>
+            ${data.certificates.filter(cert => cert.name).map(cert => `
+              <div class="creative-card">
+                <h3 class="font-bold">${cert.name}</h3>
+                <p class="text-sm creative-company mb-1">${cert.issuer}</p>
+                <p class="text-xs" style="color: #6b7280;">${cert.date}</p>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div class="section">
+          <h2 class="creative-main-title">DECLARATION</h2>
+          <div class="creative-accent-line"></div>
+          <p>${data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}</p>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const createMinimalHTML = (data: ResumeData): string => {
+  return `
+    <style>
+      .minimal-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 300;
+        line-height: 1.6;
+        color: #374151;
+      }
+      .minimal-name {
+        font-size: 40px;
+        font-weight: 100;
+        margin-bottom: 16px;
+        color: #111827;
+      }
+      .minimal-contact {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 48px;
+      }
+      .minimal-section-title {
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #111827;
+        margin-bottom: 16px;
+      }
+      .minimal-accent-line {
+        width: 32px;
+        height: 1px;
+        background: #22c55e;
+        margin-bottom: 24px;
+      }
+      .minimal-position {
+        font-size: 20px;
+        font-weight: 300;
+        color: #111827;
+      }
+      .minimal-company {
+        color: #22c55e;
+        font-weight: 300;
+        font-size: 18px;
+      }
+      .minimal-duration {
+        color: #9ca3af;
+        font-size: 14px;
+        font-weight: 300;
+      }
+    </style>
+    <div class="container minimal-container">
+      <div class="mb-6">
+        <h1 class="minimal-name">${data.personalInfo.fullName || 'Your Name'}</h1>
+        <div class="minimal-contact">
+          <div>${[data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location].filter(Boolean).join(' • ')}</div>
+          ${[data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).length > 0 ? 
+            `<div style="margin-top: 4px;">${[data.personalInfo.linkedin, data.personalInfo.portfolio].filter(Boolean).join(' • ')}</div>` : ''}
+        </div>
+      </div>
+
+      ${data.summary ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Summary</h2>
+          <div class="minimal-accent-line"></div>
+          <p>${data.summary}</p>
+        </div>
+      ` : ''}
+
+      ${data.experience.some(exp => exp.company) ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Experience</h2>
+          <div class="minimal-accent-line"></div>
+          ${data.experience.filter(exp => exp.company).map(exp => `
+            <div class="mb-6">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="minimal-position">${exp.position}</h3>
+                <span class="minimal-duration">${exp.duration}</span>
+              </div>
+              <p class="minimal-company mb-3">${exp.company}</p>
+              ${exp.description ? `<p style="font-weight: 300; line-height: 1.6;">${exp.description}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.education.some(edu => edu.institution) ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Education</h2>
+          <div class="minimal-accent-line"></div>
+          ${data.education.filter(edu => edu.institution).map(edu => `
+            <div class="mb-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 style="font-size: 16px; font-weight: 300; color: #111827;">${edu.degree}</h3>
+                  <p class="minimal-company">${edu.institution}</p>
+                </div>
+                <div class="text-right">
+                  <p class="minimal-duration">${edu.year}</p>
+                  ${edu.gpa ? `<p class="minimal-duration">GPA: ${edu.gpa}</p>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.skills.length > 0 ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Skills</h2>
+          <div class="minimal-accent-line"></div>
+          <p style="font-weight: 300;">${data.skills.join('  •  ')}</p>
+        </div>
+      ` : ''}
+
+      ${data.projects.some(proj => proj.name) ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Projects</h2>
+          <div class="minimal-accent-line"></div>
+          ${data.projects.filter(proj => proj.name).map(proj => `
+            <div class="mb-4">
+              <h3 style="font-size: 16px; font-weight: 300; color: #111827; margin-bottom: 4px;">${proj.name}</h3>
+              ${proj.technologies ? `<p style="color: #22c55e; font-size: 14px; font-weight: 300; margin-bottom: 8px;">${proj.technologies}</p>` : ''}
+              ${proj.description ? `<p style="font-weight: 300; line-height: 1.6;">${proj.description}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.certificates && data.certificates.some(cert => cert.name) ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Certificates</h2>
+          <div class="minimal-accent-line"></div>
+          ${data.certificates.filter(cert => cert.name).map(cert => `
+            <div class="mb-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 style="font-size: 16px; font-weight: 300; color: #111827;">${cert.name}</h3>
+                  <p class="minimal-company">${cert.issuer}</p>
+                </div>
+                <p class="minimal-duration">${cert.date}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${data.languages && data.languages.some(lang => lang.name) ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Languages</h2>
+          <div class="minimal-accent-line"></div>
+          <p style="font-weight: 300;">${data.languages.filter(lang => lang.name).map(lang => `${lang.name} (${lang.proficiency})`).join('  •  ')}</p>
+        </div>
+      ` : ''}
+
+      ${data.interests && data.interests.length > 0 ? `
+        <div class="section">
+          <h2 class="minimal-section-title">Interests</h2>
+          <div class="minimal-accent-line"></div>
+          <p style="font-weight: 300;">${data.interests.join('  •  ')}</p>
+        </div>
+      ` : ''}
+
+      <div class="section">
+        <h2 class="minimal-section-title">Declaration</h2>
+        <div class="minimal-accent-line"></div>
+        <p style="font-weight: 300;">${data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}</p>
+      </div>
+    </div>
+  `;
 };
