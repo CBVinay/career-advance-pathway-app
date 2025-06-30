@@ -57,23 +57,75 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
     return y + (lines.length * fontSize * 0.4);
   };
 
-  // Header
-  pdf.setFontSize(20);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text(data.personalInfo.fullName || 'Your Name', margin, yPosition);
-  yPosition += 15;
+  // Template-specific styling
+  const isModern = templateName === 'Modern Professional';
+  const isCreative = templateName === 'Creative Designer';
+  const isMinimal = templateName === 'Minimal Clean';
 
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  const contactInfo = [
-    data.personalInfo.email,
-    data.personalInfo.phone,
-    data.personalInfo.location
-  ].filter(Boolean).join(' | ');
-  
-  if (contactInfo) {
-    pdf.text(contactInfo, margin, yPosition);
-    yPosition += 8;
+  // Header styling based on template
+  if (isModern) {
+    // Modern template with blue gradient header
+    pdf.setFillColor(37, 99, 235); // Blue color
+    pdf.rect(0, 0, pageWidth, 40, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(data.personalInfo.fullName || 'Your Name', margin, 25);
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const contactInfo = [
+      data.personalInfo.email,
+      data.personalInfo.phone,
+      data.personalInfo.location
+    ].filter(Boolean).join(' | ');
+    
+    if (contactInfo) {
+      pdf.text(contactInfo, margin, 35);
+    }
+    
+    yPosition = 50;
+    pdf.setTextColor(0, 0, 0); // Reset to black
+  } else if (isCreative) {
+    // Creative template with pink/orange styling
+    pdf.setTextColor(236, 72, 153); // Pink color
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(data.personalInfo.fullName || 'Your Name', margin, yPosition);
+    yPosition += 15;
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const contactInfo = [
+      data.personalInfo.email,
+      data.personalInfo.phone,
+      data.personalInfo.location
+    ].filter(Boolean).join(' | ');
+    
+    if (contactInfo) {
+      pdf.text(contactInfo, margin, yPosition);
+      yPosition += 8;
+    }
+  } else {
+    // Classic and Minimal templates
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(data.personalInfo.fullName || 'Your Name', margin, yPosition);
+    yPosition += 15;
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    const contactInfo = [
+      data.personalInfo.email,
+      data.personalInfo.phone,
+      data.personalInfo.location
+    ].filter(Boolean).join(' | ');
+    
+    if (contactInfo) {
+      pdf.text(contactInfo, margin, yPosition);
+      yPosition += 8;
+    }
   }
 
   if (data.personalInfo.linkedin || data.personalInfo.portfolio) {
@@ -83,23 +135,55 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
     yPosition += 15;
   }
 
-  // Professional Summary
-  if (data.summary) {
+  // Section header styling function
+  const addSectionHeader = (title: string) => {
+    if (yPosition > 250) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+    
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('PROFESSIONAL SUMMARY', margin, yPosition);
-    yPosition += 10;
     
+    if (isModern) {
+      pdf.setTextColor(37, 99, 235); // Blue
+      pdf.text(title, margin, yPosition);
+      pdf.setLineWidth(2);
+      pdf.setDrawColor(37, 99, 235);
+      pdf.line(margin, yPosition + 2, margin + 40, yPosition + 2);
+    } else if (isCreative) {
+      pdf.setTextColor(236, 72, 153); // Pink
+      pdf.text(title, margin, yPosition);
+      pdf.setFillColor(236, 72, 153);
+      pdf.rect(margin, yPosition + 2, 16, 1, 'F');
+    } else if (isMinimal) {
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(title, margin, yPosition);
+      pdf.setFillColor(34, 197, 94); // Green
+      pdf.rect(margin, yPosition + 2, 8, 1, 'F');
+    } else {
+      // Classic
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(title, margin, yPosition);
+      pdf.setLineWidth(2);
+      pdf.setDrawColor(0, 0, 0);
+      pdf.line(margin, yPosition + 2, pageWidth - margin, yPosition + 2);
+    }
+    
+    pdf.setTextColor(0, 0, 0); // Reset to black
+    yPosition += 10;
+  };
+
+  // Professional Summary
+  if (data.summary) {
+    addSectionHeader('PROFESSIONAL SUMMARY');
     yPosition = addText(data.summary, margin, yPosition, pageWidth - 2 * margin);
     yPosition += 10;
   }
 
   // Experience
   if (data.experience.some(exp => exp.company)) {
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('EXPERIENCE', margin, yPosition);
-    yPosition += 10;
+    addSectionHeader('EXPERIENCE');
 
     data.experience.filter(exp => exp.company).forEach(exp => {
       if (yPosition > 250) {
@@ -117,7 +201,11 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
 
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'italic');
+      if (isModern || isCreative) {
+        pdf.setTextColor(isModern ? 37 : 236, isModern ? 99 : 72, isModern ? 235 : 153);
+      }
       pdf.text(exp.company, margin, yPosition);
+      pdf.setTextColor(0, 0, 0);
       yPosition += 8;
 
       if (exp.description) {
@@ -130,15 +218,7 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
 
   // Education
   if (data.education.some(edu => edu.institution)) {
-    if (yPosition > 220) {
-      pdf.addPage();
-      yPosition = margin;
-    }
-
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('EDUCATION', margin, yPosition);
-    yPosition += 10;
+    addSectionHeader('EDUCATION');
 
     data.education.filter(edu => edu.institution).forEach(edu => {
       pdf.setFontSize(11);
@@ -149,7 +229,11 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       yPosition += 8;
 
       pdf.setFont('helvetica', 'italic');
+      if (isModern || isCreative) {
+        pdf.setTextColor(isModern ? 37 : 236, isModern ? 99 : 72, isModern ? 235 : 153);
+      }
       pdf.text(edu.institution, margin, yPosition);
+      pdf.setTextColor(0, 0, 0);
       if (edu.gpa) {
         pdf.text(`GPA: ${edu.gpa}`, pageWidth - margin - 50, yPosition);
       }
@@ -164,11 +248,7 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       yPosition = margin;
     }
 
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('SKILLS', margin, yPosition);
-    yPosition += 10;
-
+    addSectionHeader('SKILLS');
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     yPosition = addText(data.skills.join(', '), margin, yPosition, pageWidth - 2 * margin);
@@ -182,10 +262,7 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       yPosition = margin;
     }
 
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('PROJECTS', margin, yPosition);
-    yPosition += 10;
+    addSectionHeader('PROJECTS');
 
     data.projects.filter(proj => proj.name).forEach(proj => {
       if (yPosition > 240) {
@@ -201,7 +278,11 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       if (proj.technologies) {
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'italic');
+        if (isModern || isCreative) {
+          pdf.setTextColor(isModern ? 37 : 236, isModern ? 99 : 72, isModern ? 235 : 153);
+        }
         pdf.text(proj.technologies, margin, yPosition);
+        pdf.setTextColor(0, 0, 0);
         yPosition += 6;
       }
 
@@ -221,10 +302,7 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       yPosition = margin;
     }
 
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('CERTIFICATES', margin, yPosition);
-    yPosition += 10;
+    addSectionHeader('CERTIFICATES');
 
     data.certificates.filter(cert => cert.name).forEach(cert => {
       if (yPosition > 240) {
@@ -241,7 +319,11 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
 
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'italic');
+      if (isModern || isCreative) {
+        pdf.setTextColor(isModern ? 37 : 236, isModern ? 99 : 72, isModern ? 235 : 153);
+      }
       pdf.text(cert.issuer, margin, yPosition);
+      pdf.setTextColor(0, 0, 0);
       yPosition += 8;
     });
   }
@@ -253,11 +335,7 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       yPosition = margin;
     }
 
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('LANGUAGES', margin, yPosition);
-    yPosition += 10;
-
+    addSectionHeader('LANGUAGES');
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     const languageText = data.languages.filter(lang => lang.name).map(lang => `${lang.name} (${lang.proficiency})`).join(', ');
@@ -272,35 +350,26 @@ export const generateResumePDF = (data: ResumeData, templateName: string) => {
       yPosition = margin;
     }
 
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('INTERESTS', margin, yPosition);
-    yPosition += 10;
-
+    addSectionHeader('INTERESTS');
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
     yPosition = addText(data.interests.join(', '), margin, yPosition, pageWidth - 2 * margin);
     yPosition += 10;
   }
 
-  // Declaration
-  if (data.declaration) {
-    if (yPosition > 200) {
-      pdf.addPage();
-      yPosition = margin;
-    }
-
-    pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('DECLARATION', margin, yPosition);
-    yPosition += 10;
-
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    yPosition = addText(data.declaration, margin, yPosition, pageWidth - 2 * margin);
+  // Declaration - Always show this section even if empty, with placeholder text
+  if (yPosition > 200) {
+    pdf.addPage();
+    yPosition = margin;
   }
 
+  addSectionHeader('DECLARATION');
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const declarationText = data.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.';
+  yPosition = addText(declarationText, margin, yPosition, pageWidth - 2 * margin);
+
   // Download the PDF
-  const fileName = `${data.personalInfo.fullName || 'Resume'}_${templateName}.pdf`;
+  const fileName = `${data.personalInfo.fullName || 'Resume'}_${templateName.replace(/\s+/g, '_')}.pdf`;
   pdf.save(fileName);
 };

@@ -195,14 +195,14 @@ const CreativeTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPr
             </div>
           )}
 
-          {/* Declaration */}
-          {templateData.declaration && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-pink-600 mb-3">DECLARATION</h2>
-              <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
-              <p className="text-gray-700 leading-relaxed">{templateData.declaration}</p>
-            </div>
-          )}
+          {/* Declaration - Always show with default text if empty */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-pink-600 mb-3">DECLARATION</h2>
+            <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-orange-500 mb-4"></div>
+            <p className="text-gray-700 leading-relaxed">
+              {templateData.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -192,13 +192,13 @@ const ModernTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPrev
           </div>
         )}
 
-        {/* Declaration */}
-        {templateData.declaration && (
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-blue-600 border-b-2 border-blue-600 pb-1 mb-3">DECLARATION</h2>
-            <p className="text-gray-700 leading-relaxed">{templateData.declaration}</p>
-          </div>
-        )}
+        {/* Declaration - Always show with default text if empty */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-blue-600 border-b-2 border-blue-600 pb-1 mb-3">DECLARATION</h2>
+          <p className="text-gray-700 leading-relaxed">
+            {templateData.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}
+          </p>
+        </div>
       </div>
     </div>
   );

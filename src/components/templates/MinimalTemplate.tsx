@@ -195,14 +195,14 @@ const MinimalTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPre
           </div>
         )}
 
-        {/* Declaration */}
-        {templateData.declaration && (
-          <div className="mb-10">
-            <h2 className="text-sm font-medium text-gray-900 mb-4 tracking-widest uppercase">Declaration</h2>
-            <div className="w-8 h-px bg-green-500 mb-6"></div>
-            <p className="text-gray-700 leading-relaxed font-light">{templateData.declaration}</p>
-          </div>
-        )}
+        {/* Declaration - Always show with default text if empty */}
+        <div className="mb-10">
+          <h2 className="text-sm font-medium text-gray-900 mb-4 tracking-widest uppercase">Declaration</h2>
+          <div className="w-8 h-px bg-green-500 mb-6"></div>
+          <p className="text-gray-700 leading-relaxed font-light">
+            {templateData.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}
+          </p>
+        </div>
       </div>
     </div>
   );

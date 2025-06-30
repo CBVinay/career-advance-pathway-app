@@ -177,13 +177,13 @@ const ClassicTemplate = ({ data, isPreview = false }: { data?: ResumeData; isPre
           </div>
         )}
 
-        {/* Declaration */}
-        {templateData.declaration && (
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-3 uppercase tracking-wide">Declaration</h2>
-            <p className="text-gray-700 leading-relaxed text-justify">{templateData.declaration}</p>
-          </div>
-        )}
+        {/* Declaration - Always show with default text if empty */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-3 uppercase tracking-wide">Declaration</h2>
+          <p className="text-gray-700 leading-relaxed text-justify">
+            {templateData.declaration || 'I hereby declare that all the information provided above is true to the best of my knowledge.'}
+          </p>
+        </div>
       </div>
     </div>
   );
