@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -152,9 +152,11 @@ const JobListings = () => {
         </div>
 
         <div className="text-center mt-8 animate-fade-in delay-1000">
-          <Button variant="outline" size="lg" className="hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:scale-105">
-            View All Jobs
-          </Button>
+          <Link to="/jobs">
+            <Button variant="outline" size="lg" className="hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 hover:scale-105">
+              View All Jobs
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

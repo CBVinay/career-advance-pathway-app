@@ -10,6 +10,9 @@ import LandingPage from "@/components/LandingPage";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Account from "./pages/Account";
+import AllJobs from "./pages/AllJobs";
+import AllProjects from "./pages/AllProjects";
+import AllMentors from "./pages/AllMentors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +37,9 @@ const App = () => (
                 <Account />
               </ProtectedRoute>
             } />
+            <Route path="/jobs" element={<AllJobs />} />
+            <Route path="/projects" element={<AllProjects />} />
+            <Route path="/mentors" element={<AllMentors />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
