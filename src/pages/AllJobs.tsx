@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { MapPin, Clock, DollarSign, Bookmark, ExternalLink, Search, Filter } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Bookmark, ExternalLink, Search, Filter, ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -105,6 +106,15 @@ const AllJobs = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link to="/dashboard">
+            <Button variant="ghost" className="mb-4 hover:bg-blue-50 transition-colors">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">All Job Opportunities</h1>
           <p className="text-lg text-gray-600">Discover your next career move from our comprehensive job listings</p>

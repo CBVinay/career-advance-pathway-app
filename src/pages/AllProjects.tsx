@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Github, ExternalLink, Search, Filter, Star, Users } from 'lucide-react';
+import { Github, ExternalLink, Search, Filter, Star, Users, ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -107,6 +108,15 @@ const AllProjects = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link to="/dashboard">
+            <Button variant="ghost" className="mb-4 hover:bg-blue-50 transition-colors">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Explore All Projects</h1>
           <p className="text-lg text-gray-600">Discover innovative projects from our community of developers and creators</p>

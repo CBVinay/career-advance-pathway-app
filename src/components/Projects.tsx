@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -133,9 +133,11 @@ const Projects = () => {
         </div>
 
         <div className="text-center mt-12 animate-fade-in delay-1000">
-          <Button variant="outline" size="lg" className="border-2 border-indigo-300 hover:border-indigo-500 hover:bg-indigo-50 hover:shadow-lg transition-all duration-300 hover:scale-105">
-            Explore All Projects
-          </Button>
+          <Link to="/projects">
+            <Button variant="outline" size="lg" className="border-2 border-indigo-300 hover:border-indigo-500 hover:bg-indigo-50 hover:shadow-lg transition-all duration-300 hover:scale-105">
+              Explore All Projects
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
