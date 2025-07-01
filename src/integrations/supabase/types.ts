@@ -9,6 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          company: string
+          created_at: string
+          description: string
+          id: string
+          location: string
+          posted_at: string
+          salary: string
+          tags: string[]
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          description: string
+          id?: string
+          location: string
+          posted_at?: string
+          salary: string
+          tags?: string[]
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          description?: string
+          id?: string
+          location?: string
+          posted_at?: string
+          salary?: string
+          tags?: string[]
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mentors: {
+        Row: {
+          bio: string | null
+          company: string
+          created_at: string
+          expertise: string[]
+          id: string
+          image_url: string | null
+          name: string
+          price: string
+          rating: number
+          sessions: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          company: string
+          created_at?: string
+          expertise?: string[]
+          id?: string
+          image_url?: string | null
+          name: string
+          price: string
+          rating?: number
+          sessions?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          company?: string
+          created_at?: string
+          expertise?: string[]
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: string
+          rating?: number
+          sessions?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -87,6 +201,57 @@ export type Database = {
           skills?: string[] | null
           university?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          author: string
+          category: string
+          contributors: number
+          created_at: string
+          demo_url: string | null
+          description: string
+          github_url: string | null
+          id: string
+          image_url: string | null
+          stars: number
+          tags: string[]
+          title: string
+          updated_at: string
+          zip_file_url: string | null
+        }
+        Insert: {
+          author: string
+          category: string
+          contributors?: number
+          created_at?: string
+          demo_url?: string | null
+          description: string
+          github_url?: string | null
+          id?: string
+          image_url?: string | null
+          stars?: number
+          tags?: string[]
+          title: string
+          updated_at?: string
+          zip_file_url?: string | null
+        }
+        Update: {
+          author?: string
+          category?: string
+          contributors?: number
+          created_at?: string
+          demo_url?: string | null
+          description?: string
+          github_url?: string | null
+          id?: string
+          image_url?: string | null
+          stars?: number
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          zip_file_url?: string | null
         }
         Relationships: []
       }
