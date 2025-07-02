@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import bcrypt from 'bcryptjs';
 
 interface AdminUser {
   id: string;
@@ -41,31 +40,34 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data: adminData, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('email', email)
-        .single();
+      const { data, error } = await supabase.functions.invoke('admin-auth', {
+        body: { email, password }
+      });
 
-      if (error || !adminData) {
-        return { error: { message: 'Invalid credentials' } };
+      if (error) {
+        console.error('Auth function error:', error);
+        return { error: { message: 'Authentication failed' } };
       }
 
-      const isValid = await bcrypt.compare(password, adminData.password_hash);
-      if (!isValid) {
-        return { error: { message: 'Invalid credentials' } };
+      if (data.error) {
+        return { error: { message: data.error } };
       }
 
-      const user = {
-        id: adminData.id,
-        email: adminData.email,
-        full_name: adminData.full_name
-      };
+      if (data.success && data.admin) {
+        const user = {
+          id: data.admin.id,
+          email: data.admin.email,
+          full_name: data.admin.full_name
+        };
 
-      setAdminUser(user);
-      localStorage.setItem('admin_user', JSON.stringify(user));
-      return { error: null };
+        setAdminUser(user);
+        localStorage.setItem('admin_user', JSON.stringify(user));
+        return { error: null };
+      }
+
+      return { error: { message: 'Invalid credentials' } };
     } catch (error) {
+      console.error('Sign in error:', error);
       return { error: { message: 'Authentication failed' } };
     }
   };
