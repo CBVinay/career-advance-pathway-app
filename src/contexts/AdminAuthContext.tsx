@@ -40,31 +40,38 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Attempting to sign in with email:', email);
+      
       const { data, error } = await supabase.functions.invoke('admin-auth', {
         body: { email, password }
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) {
         console.error('Auth function error:', error);
-        return { error: { message: 'Authentication failed' } };
+        return { error: { message: 'Authentication service error' } };
       }
 
-      if (data.error) {
+      if (data?.error) {
+        console.error('Auth error from function:', data.error);
         return { error: { message: data.error } };
       }
 
-      if (data.success && data.admin) {
+      if (data?.success && data?.admin) {
         const user = {
           id: data.admin.id,
           email: data.admin.email,
           full_name: data.admin.full_name
         };
 
+        console.log('Authentication successful for user:', user);
         setAdminUser(user);
         localStorage.setItem('admin_user', JSON.stringify(user));
         return { error: null };
       }
 
+      console.error('Unexpected response format:', data);
       return { error: { message: 'Invalid credentials' } };
     } catch (error) {
       console.error('Sign in error:', error);
