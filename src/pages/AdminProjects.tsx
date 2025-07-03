@@ -1,6 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Upload, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, FolderOpen, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Project {
@@ -19,12 +19,12 @@ interface Project {
   author: string;
   category: string;
   tags: string[];
+  image_url: string | null;
+  github_url: string | null;
+  demo_url: string | null;
+  zip_file_url: string | null;
   stars: number;
   contributors: number;
-  image_url?: string;
-  zip_file_url?: string;
-  github_url?: string;
-  demo_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -280,7 +280,15 @@ const AdminProjects = () => {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Manage Projects</h1>
+            <div className="flex items-center gap-4">
+              <Link to="/admin/dashboard">
+                <Button variant="ghost" className="hover:bg-gray-100">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <h1 className="text-2xl font-bold text-gray-900">Manage Projects</h1>
+            </div>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button>

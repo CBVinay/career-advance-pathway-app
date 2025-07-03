@@ -1,47 +1,63 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, MessageCircle, Calendar, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Mentorship = () => {
-  const mentors = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      title: 'Senior Software Engineer',
-      company: 'Google',
-      expertise: ['React', 'System Design', 'Career Growth'],
-      rating: 4.9,
-      sessions: 127,
-      price: '$75/hour',
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b84d4815?w=100&h=100&fit=crop&crop=face&auto=format'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      title: 'Product Manager',
-      company: 'Microsoft',
-      expertise: ['Product Strategy', 'Leadership', 'Interview Prep'],
-      rating: 4.8,
-      sessions: 89,
-      price: '$65/hour',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face&auto=format'
-    },
-    {
-      id: 3,
-      name: 'Emily Rodriguez',
-      title: 'Data Science Lead',
-      company: 'Netflix',
-      expertise: ['Machine Learning', 'Python', 'Analytics'],
-      rating: 4.9,
-      sessions: 156,
-      price: '$80/hour',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face&auto=format'
+  const queryClient = useQueryClient();
+
+  // Fetch mentors from database
+  const { data: mentors = [], isLoading } = useQuery({
+    queryKey: ['mentors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mentors')
+        .select('*')
+        .order('rating', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
     }
-  ];
+  });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('mentors-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mentors'
+        },
+        (payload) => {
+          console.log('Mentors table changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['mentors'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">Loading mentors...</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 relative overflow-hidden">
@@ -96,7 +112,7 @@ const Mentorship = () => {
               <div className="text-center mb-6 relative z-10">
                 <div className="relative inline-block">
                   <img 
-                    src={mentor.image} 
+                    src={mentor.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b84d4815?w=100&h=100&fit=crop&crop=face&auto=format'} 
                     alt={mentor.name}
                     className="w-20 h-20 rounded-full mx-auto mb-4 object-cover ring-4 ring-white shadow-lg group-hover:ring-blue-200 transition-all duration-300"
                   />
@@ -119,7 +135,7 @@ const Mentorship = () => {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6 justify-center relative z-10">
-                {mentor.expertise.map((skill) => (
+                {mentor.expertise.slice(0, 3).map((skill) => (
                   <Badge key={skill} variant="secondary" className="text-xs bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 hover:shadow-md transition-all duration-300 hover:scale-105">
                     {skill}
                   </Badge>
