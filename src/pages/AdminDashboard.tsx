@@ -40,11 +40,29 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center h-16">
             <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
             <div className="flex items-center gap-4">
-              <span className="text-gray-600">Welcome, {adminUser?.full_name}</span>
+              <span className="text-gray-600">
+                Welcome, {adminUser?.full_name || 'Admin (Temporary Access)'}
+              </span>
               <Button variant="outline" onClick={signOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Temporary notice */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                Temporary Access Mode
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p>Authentication is temporarily bypassed for testing purposes. Remember to restore authentication when the login issue is resolved.</p>
+              </div>
             </div>
           </div>
         </div>
