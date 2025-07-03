@@ -18,6 +18,8 @@ import AllMentors from "./pages/AllMentors";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminMentors from "./pages/AdminMentors";
+import AdminProjects from "./pages/AdminProjects";
+import AdminJobs from "./pages/AdminJobs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +59,16 @@ const App = () => (
               <Route path="/admin/mentors" element={
                 <AdminProtectedRoute>
                   <AdminMentors />
+                </AdminProtectedRoute>
+              } />
+              <Route path="/admin/projects" element={
+                <AdminProtectedRoute>
+                  <AdminProjects />
+                </AdminProtectedRoute>
+              } />
+              <Route path="/admin/jobs" element={
+                <AdminProtectedRoute>
+                  <AdminJobs />
                 </AdminProtectedRoute>
               } />
               
