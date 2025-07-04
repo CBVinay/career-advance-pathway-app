@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import Dashboard from '@/pages/Dashboard';
 import Login from '@/pages/Login';
@@ -11,9 +12,11 @@ import AllProjects from '@/pages/AllProjects';
 import AdminProjects from '@/pages/AdminProjects';
 import ProjectDetail from '@/pages/ProjectDetail';
 
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <Toaster />
       <BrowserRouter>
         <Routes>
@@ -28,7 +31,7 @@ function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
         </Routes>
       </BrowserRouter>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
