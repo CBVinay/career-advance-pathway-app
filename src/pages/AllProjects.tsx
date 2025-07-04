@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Github, ExternalLink, Search, Filter, Star, Users, ArrowLeft } from 'lucide-react';
+import { Github, ExternalLink, Search, Filter, Star, Users, ArrowLeft, Eye } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +51,20 @@ const AllProjects = () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+
+  const handleViewProject = (project: any) => {
+    // Create a modal or navigate to project detail page
+    console.log('Viewing project:', project);
+    // For now, let's open the demo URL or GitHub URL if available
+    if (project.demo_url) {
+      window.open(project.demo_url, '_blank');
+    } else if (project.github_url) {
+      window.open(project.github_url, '_blank');
+    } else {
+      // Navigate to a project detail page (we'll create this route)
+      window.location.href = `/projects/${project.id}`;
+    }
+  };
 
   const categories = [
     { key: 'all', label: 'All Projects' },
@@ -178,14 +191,28 @@ const AllProjects = () => {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button className="flex-1">View Project</Button>
+                    <Button 
+                      onClick={() => handleViewProject(project)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Project
+                    </Button>
                     {project.github_url && (
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(project.github_url, '_blank')}
+                      >
                         <Github className="h-4 w-4" />
                       </Button>
                     )}
                     {project.demo_url && (
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(project.demo_url, '_blank')}
+                      >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
                     )}

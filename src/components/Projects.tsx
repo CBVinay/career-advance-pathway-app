@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -47,6 +48,20 @@ const Projects = () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+
+  const handleViewProject = (project: any) => {
+    // Create a modal or navigate to project detail page
+    console.log('Viewing project:', project);
+    // For now, let's open the demo URL or GitHub URL if available
+    if (project.demo_url) {
+      window.open(project.demo_url, '_blank');
+    } else if (project.github_url) {
+      window.open(project.github_url, '_blank');
+    } else {
+      // Navigate to a project detail page (we'll create this route)
+      window.location.href = `/projects/${project.id}`;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -125,9 +140,12 @@ const Projects = () => {
                 </div>
                 
                 <div className="flex gap-2 relative z-10">
-                  <Button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg transition-all duration-300 hover:scale-105">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
+                  <Button 
+                    onClick={() => handleViewProject(project)}
+                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Project
                   </Button>
                   {project.demo_url && (
                     <Button variant="outline" size="sm" className="hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 hover:scale-110">
