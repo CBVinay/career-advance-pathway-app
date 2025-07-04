@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -32,16 +33,28 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Add registration logic here
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Registration Successful",
-        description: "Welcome! Your account has been created.",
+        description: "Please check your email to confirm your account.",
       });
-      navigate('/dashboard');
-    } catch (error) {
+      navigate('/login');
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Registration failed. Please try again.",
+        description: error.message || "Registration failed. Please try again.",
         variant: "destructive",
       });
     } finally {

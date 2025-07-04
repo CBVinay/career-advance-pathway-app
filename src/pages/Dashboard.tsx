@@ -4,10 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { BookOpen, Users, Briefcase } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
+      
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -67,6 +71,8 @@ const Dashboard = () => {
           </Card>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
