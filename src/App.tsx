@@ -1,84 +1,35 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import Dashboard from '@/pages/Dashboard';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import AdminDashboard from '@/pages/AdminDashboard';
+import AdminLogin from '@/pages/AdminLogin';
+import AllProjects from '@/pages/AllProjects';
+import AdminProjects from '@/pages/AdminProjects';
+import ProjectDetail from '@/pages/ProjectDetail';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminProtectedRoute from "@/components/AdminProtectedRoute";
-import LandingPage from "@/components/LandingPage";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Account from "./pages/Account";
-import AllJobs from "./pages/AllJobs";
-import AllProjects from "./pages/AllProjects";
-import AllMentors from "./pages/AllMentors";
-import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminMentors from "./pages/AdminMentors";
-import AdminProjects from "./pages/AdminProjects";
-import AdminJobs from "./pages/AdminJobs";
-import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <QueryClient>
       <Toaster />
-      <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <AdminAuthProvider>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/account" element={
-                <ProtectedRoute>
-                  <Account />
-                </ProtectedRoute>
-              } />
-              <Route path="/jobs" element={<AllJobs />} />
-              <Route path="/projects" element={<AllProjects />} />
-              <Route path="/mentors" element={<AllMentors />} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={
-                <AdminProtectedRoute>
-                  <AdminDashboard />
-                </AdminProtectedRoute>
-              } />
-              <Route path="/admin/mentors" element={
-                <AdminProtectedRoute>
-                  <AdminMentors />
-                </AdminProtectedRoute>
-              } />
-              <Route path="/admin/projects" element={
-                <AdminProtectedRoute>
-                  <AdminProjects />
-                </AdminProtectedRoute>
-              } />
-              <Route path="/admin/jobs" element={
-                <AdminProtectedRoute>
-                  <AdminJobs />
-                </AdminProtectedRoute>
-              } />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AdminAuthProvider>
-        </AuthProvider>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/projects" element={<AdminProjects />} />
+          <Route path="/projects" element={<AllProjects />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+        </Routes>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClient>
+  );
+}
 
 export default App;

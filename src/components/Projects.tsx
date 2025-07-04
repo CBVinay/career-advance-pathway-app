@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -50,17 +49,8 @@ const Projects = () => {
   }, [queryClient]);
 
   const handleViewProject = (project: any) => {
-    // Create a modal or navigate to project detail page
-    console.log('Viewing project:', project);
-    // For now, let's open the demo URL or GitHub URL if available
-    if (project.demo_url) {
-      window.open(project.demo_url, '_blank');
-    } else if (project.github_url) {
-      window.open(project.github_url, '_blank');
-    } else {
-      // Navigate to a project detail page (we'll create this route)
-      window.location.href = `/projects/${project.id}`;
-    }
+    // Navigate to project detail page
+    window.location.href = `/projects/${project.id}`;
   };
 
   if (isLoading) {
