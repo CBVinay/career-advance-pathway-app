@@ -78,62 +78,6 @@ export type Database = {
         }
         Relationships: []
       }
-      mentor_bookings: {
-        Row: {
-          amount: number
-          booked_at: string | null
-          created_at: string
-          currency: string | null
-          id: string
-          mentor_id: string | null
-          notes: string | null
-          session_date: string | null
-          session_duration: number | null
-          status: string | null
-          stripe_session_id: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          amount: number
-          booked_at?: string | null
-          created_at?: string
-          currency?: string | null
-          id?: string
-          mentor_id?: string | null
-          notes?: string | null
-          session_date?: string | null
-          session_duration?: number | null
-          status?: string | null
-          stripe_session_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          amount?: number
-          booked_at?: string | null
-          created_at?: string
-          currency?: string | null
-          id?: string
-          mentor_id?: string | null
-          notes?: string | null
-          session_date?: string | null
-          session_duration?: number | null
-          status?: string | null
-          stripe_session_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mentor_bookings_mentor_id_fkey"
-            columns: ["mentor_id"]
-            isOneToOne: false
-            referencedRelation: "mentors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mentors: {
         Row: {
           bio: string | null
