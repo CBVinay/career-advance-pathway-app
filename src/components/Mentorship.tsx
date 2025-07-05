@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, MessageCircle, Calendar, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Mentorship = () => {
   const queryClient = useQueryClient();
+  const [isProcessingBooking, setIsProcessingBooking] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Fetch mentors from database
   const { data: mentors = [], isLoading } = useQuery({
@@ -48,6 +51,56 @@ const Mentorship = () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+
+  const handleBookSession = async (mentor: any) => {
+    try {
+      setIsProcessingBooking(mentor.id);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to book a mentorship session.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Parse price from mentor.price (e.g., "$50/hour" -> 5000 cents)
+      const priceMatch = mentor.price.match(/\$(\d+)/);
+      const amount = priceMatch ? parseInt(priceMatch[1]) * 100 : 5000; // Default to $50
+
+      const { data, error } = await supabase.functions.invoke('create-mentor-booking', {
+        body: { 
+          mentorId: mentor.id,
+          amount: amount,
+          sessionDuration: 60, // 1 hour session
+          sessionDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+          notes: "Mentorship session booking"
+        }
+      });
+
+      if (error) throw error;
+
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+      
+      toast({
+        title: "Redirecting to Payment",
+        description: "Opening payment page in a new tab."
+      });
+      
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast({
+        title: "Booking Error",
+        description: "Failed to initiate booking. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessingBooking(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -148,9 +201,13 @@ const Mentorship = () => {
               </div>
 
               <div className="space-y-2 relative z-10">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all duration-300 hover:scale-105">
+                <Button 
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  onClick={() => handleBookSession(mentor)}
+                  disabled={isProcessingBooking === mentor.id}
+                >
                   <Calendar className="h-4 w-4 mr-2" />
-                  Book Session
+                  {isProcessingBooking === mentor.id ? 'Processing...' : 'Book Session'}
                 </Button>
                 <Button variant="outline" className="w-full hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 hover:scale-105">
                   <MessageCircle className="h-4 w-4 mr-2" />
