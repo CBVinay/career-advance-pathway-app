@@ -107,9 +107,9 @@ const AllMentors = () => {
         return;
       }
 
-      // Parse price from mentor.price (e.g., "$50/hour" -> 5000 cents)
-      const priceMatch = mentor.price.match(/\$(\d+)/);
-      const amount = priceMatch ? parseInt(priceMatch[1]) * 100 : 5000; // Default to $50
+      // Parse price from mentor.price (e.g., "₹5000/hour" -> 500000 paise)
+      const priceMatch = mentor.price.match(/₹(\d+)/);
+      const amount = priceMatch ? parseInt(priceMatch[1]) * 100 : 500000; // Default to ₹5000
 
       const { data, error } = await supabase.functions.invoke('create-mentor-booking', {
         body: { 
@@ -123,13 +123,62 @@ const AllMentors = () => {
 
       if (error) throw error;
 
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-      
-      toast({
-        title: "Redirecting to Payment",
-        description: "Opening payment page in a new tab."
-      });
+      // Load Razorpay script dynamically
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        const options = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'DevHub',
+          description: `Mentorship Session with ${data.mentorName}`,
+          order_id: data.orderId,
+          prefill: {
+            email: data.userEmail,
+          },
+          theme: {
+            color: '#4F46E5'
+          },
+          handler: async (response: any) => {
+            try {
+              // Verify payment on our server
+              const { error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
+                body: {
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                  type: 'mentor'
+                }
+              });
+
+              if (verifyError) throw verifyError;
+
+              toast({
+                title: "Booking Confirmed!",
+                description: "Your mentorship session has been booked successfully."
+              });
+            } catch (error) {
+              console.error('Payment verification error:', error);
+              toast({
+                title: "Booking Verification Failed",
+                description: "Please contact support if money was deducted.",
+                variant: "destructive"
+              });
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setIsProcessingBooking(null);
+            }
+          }
+        };
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+        setIsProcessingBooking(null);
+      };
+      document.head.appendChild(script);
       
     } catch (error) {
       console.error('Booking error:', error);
@@ -138,7 +187,6 @@ const AllMentors = () => {
         description: "Failed to initiate booking. Please try again.",
         variant: "destructive"
       });
-    } finally {
       setIsProcessingBooking(null);
     }
   };

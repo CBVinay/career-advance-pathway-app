@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -64,56 +63,58 @@ serve(async (req) => {
       throw new Error("Project already purchased");
     }
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
+    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+    if (!razorpayKeyId || !razorpayKeySecret) throw new Error("RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set");
     
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-
-    // Check if customer exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-    }
-
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: `${project.title} - Source Code`,
-              description: `Complete source code and documentation for ${project.title}`,
-            },
-            unit_amount: amount,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/projects/${projectId}?payment=success`,
-      cancel_url: `${req.headers.get("origin")}/projects/${projectId}?payment=cancelled`,
-      metadata: {
+    // Create Razorpay order
+    const razorpayOrderData = {
+      amount: amount, // amount in paise (smallest currency unit)
+      currency: "INR",
+      receipt: `project_${projectId}_${Date.now()}`,
+      notes: {
         user_id: user.id,
         project_id: projectId,
+        project_title: project.title
+      }
+    };
+
+    const auth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
+    const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${auth}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(razorpayOrderData),
     });
+
+    if (!razorpayResponse.ok) {
+      const errorData = await razorpayResponse.text();
+      throw new Error(`Razorpay API error: ${errorData}`);
+    }
+
+    const razorpayOrder = await razorpayResponse.json();
 
     // Record the purchase attempt
     await supabaseClient.from("project_purchases").insert({
       user_id: user.id,
       project_id: projectId,
-      stripe_session_id: session.id,
+      stripe_session_id: razorpayOrder.id, // Using razorpay order id
       amount: amount,
       status: "pending",
     });
 
-    logStep("Checkout session created", { sessionId: session.id });
+    logStep("Razorpay order created", { orderId: razorpayOrder.id });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ 
+      orderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: razorpayKeyId,
+      projectTitle: project.title,
+      userEmail: user.email
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

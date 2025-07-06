@@ -69,14 +69,71 @@ const ProjectDetail = () => {
       const { data, error } = await supabase.functions.invoke('create-project-payment', {
         body: { 
           projectId: id,
-          amount: 2999 // $29.99 in cents
+          amount: 299900 // ₹2999 in paise
         }
       });
 
       if (error) throw error;
 
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      // Load Razorpay script dynamically
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        const options = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'DevHub',
+          description: `${data.projectTitle} - Source Code`,
+          order_id: data.orderId,
+          prefill: {
+            email: data.userEmail,
+          },
+          theme: {
+            color: '#4F46E5'
+          },
+          handler: async (response: any) => {
+            try {
+              // Verify payment on our server
+              const { error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
+                body: {
+                  orderId: response.razorpay_order_id,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                  type: 'project'
+                }
+              });
+
+              if (verifyError) throw verifyError;
+
+              toast({
+                title: "Payment Successful!",
+                description: "Your project purchase was completed successfully."
+              });
+              
+              // Refresh the page to show download button
+              window.location.reload();
+            } catch (error) {
+              console.error('Payment verification error:', error);
+              toast({
+                title: "Payment Verification Failed",
+                description: "Please contact support if money was deducted.",
+                variant: "destructive"
+              });
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setIsProcessingPayment(false);
+            }
+          }
+        };
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+        setIsProcessingPayment(false);
+      };
+      document.head.appendChild(script);
       
     } catch (error) {
       console.error('Payment error:', error);
@@ -85,7 +142,6 @@ const ProjectDetail = () => {
         description: "Failed to initiate payment. Please try again.",
         variant: "destructive"
       });
-    } finally {
       setIsProcessingPayment(false);
     }
   };
@@ -240,10 +296,10 @@ const ProjectDetail = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">$29.99</div>
-                    <p className="text-sm text-gray-600">One-time purchase</p>
-                  </div>
+                   <div className="text-center">
+                     <div className="text-3xl font-bold text-gray-900">₹2,999</div>
+                     <p className="text-sm text-gray-600">One-time purchase</p>
+                   </div>
 
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
